@@ -1,0 +1,32 @@
+app:
+  version: 0.0.0
+spring:
+  mail:
+    host: fake-provider
+    port: 0
+    username: fake-account
+    password: fake-password
+    debug: true
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+file-upload:
+  destination-dir: src/main/resources/local
+  max-size: 3145728
+  allowed-types: image/png, application/pdf
+jwt:
+  secret: TestarrooSecret
+  algorithm: HS256
+  type: Bearer
+api:
+  host: 'localhost:8443'
+google-storage:
+  project-id: ''
+  local-credentials-path: ''
+  bucket-name: ''

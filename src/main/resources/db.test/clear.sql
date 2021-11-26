@@ -1,0 +1,1 @@
+delete from cache_items;

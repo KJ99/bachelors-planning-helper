@@ -1,0 +1,44 @@
+app:
+  name: 'Planning Helper'
+  description: Planning api for Konrad Jezierski's bachelors project
+server:
+  port: 0
+http:
+  port: 8080
+springdoc:
+  api-docs:
+    path: /swagger-json
+  swagger-ui:
+    path: /swagger-ui
+    operations-sorter: method
+spring:
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    serialization-inclusion: non_null
+    default-property-inclusion: non_null
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    locations: classpath:db/migration
+  cache:
+    cache-names: ''
+    redis:
+      time-to-live: 1h
+
+  mail:
+    from: testmail@test.pl
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+in-app-cache:
+  valid-time-in-hours: 3
+api:
+  host: ''
+  errors:
+    TM.001: Value of this field must not be empty
+    TM.002: Invalid value
+    TM.101: Invitation token has expired
+    TM.102: You are already a member of this team
