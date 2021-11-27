@@ -21,8 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class PlanningApiControllerTests extends BaseIntegrationTest {
@@ -165,6 +164,81 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
                 patch("/v1/plannings/1")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(requestBody)
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGet_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                get("/v1/plannings/teams/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGet_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/teams/1")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGet_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                get("/v1/plannings/teams/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetParticular_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetParticular_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/1")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGetParticular_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetIncoming_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                get("/v1/plannings/teams/1/incoming")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetIncoming_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/teams/1/incoming")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGetIncoming_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                get("/v1/plannings/teams/1/incoming")
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isForbidden());
     }

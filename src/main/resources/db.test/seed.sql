@@ -8,4 +8,5 @@
 
     insert into plannings (id, team_id, title, start_at, timezone, status, created_at) values
         (1, 1, 'Planning Scheduled', '2030-01-01 23:50:00', 'Europe/Warsaw', 'SCHEDULED', '2020-01-01 00:00:00'),
-        (2, 1, 'Planning Scheduled', '2021-01-01 23:50:00', 'Europe/Warsaw', 'FINISHED', '2020-01-01 00:00:00');
+        (2, 1, 'Planning Finished', '2021-01-01 23:50:00', 'Europe/Warsaw', 'FINISHED', '2020-01-01 00:00:00'),
+        (3, 1, 'Planning Scheduled', '2028-01-01 23:50:00', 'Europe/Warsaw', 'SCHEDULED', '2020-01-01 00:00:00');
