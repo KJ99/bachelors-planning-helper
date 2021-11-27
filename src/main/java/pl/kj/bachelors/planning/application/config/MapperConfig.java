@@ -10,7 +10,14 @@ import pl.kj.bachelors.planning.application.dto.response.health.SingleCheckRespo
 import pl.kj.bachelors.planning.application.model.HealthCheckResult;
 import pl.kj.bachelors.planning.application.model.SingleCheckResult;
 import pl.kj.bachelors.planning.domain.config.ApiConfig;
+import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
+import pl.kj.bachelors.planning.domain.model.entity.Planning;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -43,6 +50,25 @@ public class MapperConfig {
                         .map(item -> mapper().map(item, SingleCheckResponse.class))
                         .collect(Collectors.toList())
                 ).map(source, destination.getResults());
+            }
+        });
+
+        mapper.addMappings(new PropertyMap<PlanningCreateModel, Planning>() {
+            @Override
+            protected void configure() {
+                using(ctx -> {
+                    PlanningCreateModel model = (PlanningCreateModel) ctx.getSource();
+                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    Calendar result;
+                    try {
+                        result = Calendar.getInstance();
+                        result.setTime(df.parse(model.getStartDate()));
+                    } catch (ParseException e) {
+                        result = null;
+                    }
+
+                    return result;
+                }).map(source, destination.getStartAt());
             }
         });
 
