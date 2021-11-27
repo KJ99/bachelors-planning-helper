@@ -32,7 +32,9 @@ public class PlanningItemsManagementVoter  extends BasePlanningEntityVoter<Plann
                 break;
             case UPDATE:
             case DELETE:
-                vote = subject.getStatus().equals(PlanningStatus.SCHEDULED) ? AccessVote.ALLOW : AccessVote.DENY;
+                vote = subject.getStatus().equals(PlanningStatus.SCHEDULED) && this.hasRole(member, Role.PRODUCT_OWNER)
+                        ? AccessVote.ALLOW
+                        : AccessVote.DENY;
                 break;
             case READ:
                 vote = AccessVote.ALLOW;

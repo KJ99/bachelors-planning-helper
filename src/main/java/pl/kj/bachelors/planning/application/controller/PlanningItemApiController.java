@@ -1,5 +1,6 @@
 package pl.kj.bachelors.planning.application.controller;
 
+import com.github.fge.jsonpatch.JsonPatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +13,11 @@ import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningItemAdministrativeAction;
+import pl.kj.bachelors.planning.domain.model.update.PlanningItemUpdateModel;
 import pl.kj.bachelors.planning.domain.service.crud.create.PlanningItemCreateService;
+import pl.kj.bachelors.planning.domain.service.crud.update.PlanningItemUpdateService;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
+import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 
 @RestController
@@ -23,15 +27,21 @@ public class PlanningItemApiController extends BaseApiController {
     private final PlanningItemCreateService createService;
     private final EntityAccessControlService<Planning> planningAccessControlService;
     private final PlanningRepository planningRepository;
+    private final PlanningItemUpdateService updateService;
+    private final PlanningItemRepository repository;
 
     @Autowired
     public PlanningItemApiController(
             PlanningItemCreateService createService,
             EntityAccessControlService<Planning> planningAccessControlService,
-            PlanningRepository planningRepository) {
+            PlanningRepository planningRepository,
+            PlanningItemUpdateService updateService,
+            PlanningItemRepository repository) {
         this.createService = createService;
         this.planningAccessControlService = planningAccessControlService;
         this.planningRepository = planningRepository;
+        this.updateService = updateService;
+        this.repository = repository;
     }
 
     @PostMapping
@@ -47,5 +57,19 @@ public class PlanningItemApiController extends BaseApiController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(this.map(result, PlanningItemResponse.class));
+    }
+
+    @PatchMapping("/{itemId}")
+    public ResponseEntity<?> update(
+            @PathVariable Integer planningId,
+            @PathVariable Integer itemId,
+            @RequestBody JsonPatch jsonPatch) throws Exception {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.UPDATE);
+        PlanningItem item = this.repository.findById(itemId).orElseThrow(ResourceNotFoundException::new);
+
+        this.updateService.processUpdate(item, jsonPatch, PlanningItemUpdateModel.class);
+
+        return ResponseEntity.noContent().build();
     }
 }
