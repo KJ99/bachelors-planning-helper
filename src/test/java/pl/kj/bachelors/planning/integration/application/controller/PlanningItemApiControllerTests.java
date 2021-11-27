@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.extension.Role;
@@ -13,6 +14,7 @@ import pl.kj.bachelors.planning.domain.service.user.MemberProvider;
 import pl.kj.bachelors.planning.integration.BaseIntegrationTest;
 import pl.kj.bachelors.planning.model.PatchOperation;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -255,6 +257,22 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
                 delete("/v1/plannings/1/items/1")
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testImportFromCsv() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        String content =
+                        "title,description\n" +
+                        "Task 1,Task 1 desc\n" +
+                        "Task 2,Task 2 desc";
+        var mockFile = new MockMultipartFile("file", content.getBytes(StandardCharsets.UTF_8));
+        this.mockMvc.perform(
+                multipart("/v1/plannings/1/items/import")
+                        .file(mockFile)
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+
+        ).andExpect(status().isNoContent());
     }
 
     private TeamMember createTeamMember(String uid, List<Role> roles) {

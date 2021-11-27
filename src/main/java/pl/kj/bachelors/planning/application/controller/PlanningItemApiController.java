@@ -3,11 +3,14 @@ package pl.kj.bachelors.planning.application.controller;
 import com.github.fge.jsonpatch.JsonPatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
 import pl.kj.bachelors.planning.domain.annotation.Authentication;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
+import pl.kj.bachelors.planning.domain.exception.AggregatedApiError;
 import pl.kj.bachelors.planning.domain.exception.ResourceNotFoundException;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
@@ -17,16 +20,20 @@ import pl.kj.bachelors.planning.domain.model.update.PlanningItemUpdateModel;
 import pl.kj.bachelors.planning.domain.service.crud.create.PlanningItemCreateService;
 import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningItemDeleteService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningItemUpdateService;
+import pl.kj.bachelors.planning.domain.service.file.CsvImporter;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 
+import javax.servlet.annotation.MultipartConfig;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
 @RestController
 @RequestMapping("/v1/plannings/{planningId}/items")
 @Authentication
+@MultipartConfig(maxFileSize = 10 * 1024 * 1024)
 public class PlanningItemApiController extends BaseApiController {
     private final PlanningItemCreateService createService;
     private final EntityAccessControlService<Planning> planningAccessControlService;
@@ -34,6 +41,7 @@ public class PlanningItemApiController extends BaseApiController {
     private final PlanningItemUpdateService updateService;
     private final PlanningItemRepository repository;
     private final PlanningItemDeleteService deleteService;
+    private final CsvImporter csvImporter;
 
     @Autowired
     public PlanningItemApiController(
@@ -42,13 +50,15 @@ public class PlanningItemApiController extends BaseApiController {
             PlanningRepository planningRepository,
             PlanningItemUpdateService updateService,
             PlanningItemRepository repository,
-            PlanningItemDeleteService deleteService) {
+            PlanningItemDeleteService deleteService,
+            CsvImporter csvImporter) {
         this.createService = createService;
         this.planningAccessControlService = planningAccessControlService;
         this.planningRepository = planningRepository;
         this.updateService = updateService;
         this.repository = repository;
         this.deleteService = deleteService;
+        this.csvImporter = csvImporter;
     }
 
     @PostMapping
@@ -122,6 +132,22 @@ public class PlanningItemApiController extends BaseApiController {
         PlanningItem entity = this.repository.findById(itemId).orElseThrow(ResourceNotFoundException::new);
 
         this.deleteService.delete(entity);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importFromCsv(
+            @RequestParam("file") MultipartFile file,
+            @PathVariable Integer planningId
+    ) throws Exception {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.CREATE);
+        List<PlanningItemCreateModel> models = this.csvImporter.importFromCsv(file, PlanningItemCreateModel.class);
+        for (PlanningItemCreateModel model : models) {
+            model.setPlanning(planning);
+            this.createService.create(model, PlanningItem.class);
+        }
 
         return ResponseEntity.noContent().build();
     }
