@@ -12,7 +12,7 @@ import pl.kj.bachelors.planning.infrastructure.user.RequestHandler;
 
 import java.util.Optional;
 
-public abstract class BaseRemoteEntityProvider<T, ID> {
+public abstract class BaseRemoteEntityProvider<T> {
     protected final JwtConfig jwtConfig;
     protected final ObjectMapper objectMapper;
 
@@ -21,13 +21,11 @@ public abstract class BaseRemoteEntityProvider<T, ID> {
         this.objectMapper = objectMapper;
     }
 
-    protected abstract String getUrl(ID entityId);
     protected abstract Class<T> getModelClass();
 
-    public Optional<T> get(ID entityId) {
+    protected Optional<T> fetch(String url) {
         var restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<>("parameters", this.getHeaders());
-        String url = this.getUrl(entityId);
         ResponseEntity<String> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,

@@ -10,7 +10,7 @@ import pl.kj.bachelors.planning.infrastructure.user.RequestHandler;
 
 import java.util.Optional;
 
-public abstract class BaseCacheableRemoteEntityProvider <T, ID, R extends BaseRemoteEntityProvider<T, ID>> {
+public abstract class BaseCacheableRemoteEntityProvider <T, R> {
     protected final R remoteEntityProvider;
     protected final CacheManagementService cacheManagementService;
     protected boolean noCache;
@@ -24,26 +24,9 @@ public abstract class BaseCacheableRemoteEntityProvider <T, ID, R extends BaseRe
     protected abstract CacheTag getCacheTag();
     protected abstract Class<T> getModelClass();
 
-    public Optional<T> get(ID entityId) {
-        Optional<T> result;
-        if(this.noCache || this.shouldSkipCache()) {
-            result = this.getFromRemote(entityId);
-        } else {
-            result = this.getFromCache(entityId).or(() -> this.getFromRemote(entityId));
-        }
 
-        return result;
-    }
-
-    protected Optional<T> getFromRemote(ID entityId) {
-        Optional<T> result = this.remoteEntityProvider.get(entityId);
-        result.ifPresent(t -> this.saveToCache(this.getCacheKey(entityId), t));
-
-        return result;
-    }
-
-    protected Optional<T> getFromCache(ID entityId) {
-        return this.cacheManagementService.read(this.getCacheTag(), this.getCacheKey(entityId), this.getModelClass());
+    protected Optional<T> getFromCache(String key) {
+        return this.cacheManagementService.read(this.getCacheTag(), key, this.getModelClass());
     }
 
     protected void saveToCache(String key, T value) {
@@ -53,10 +36,6 @@ public abstract class BaseCacheableRemoteEntityProvider <T, ID, R extends BaseRe
             String log = String.format("Could not save cache with tag: %s and key: %s", this.getCacheTag(), key);
             LoggerFactory.getLogger(this.getClass()).error(log);
         }
-    }
-
-    protected String getCacheKey(ID entityId) {
-        return String.valueOf(entityId);
     }
 
     public void setNoCache(boolean noCache) {

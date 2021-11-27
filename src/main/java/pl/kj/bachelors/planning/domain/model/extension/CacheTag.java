@@ -1,5 +1,6 @@
 package pl.kj.bachelors.planning.domain.model.extension;
 
 public enum CacheTag {
-    USER_PROFILE
+    USER_PROFILE,
+    TEAM_MEMBER
 }

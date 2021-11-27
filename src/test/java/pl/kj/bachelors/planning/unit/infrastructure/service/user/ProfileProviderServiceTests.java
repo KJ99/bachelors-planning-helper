@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import pl.kj.bachelors.planning.domain.model.remote.UserProfile;
-import pl.kj.bachelors.planning.infrastructure.service.remote.ProfileRemoteProvider;
+import pl.kj.bachelors.planning.infrastructure.service.remote.ProfileRemoteProviderImpl;
 import pl.kj.bachelors.planning.infrastructure.service.user.ProfileProviderService;
 import pl.kj.bachelors.planning.infrastructure.user.RequestHandler;
 import pl.kj.bachelors.planning.unit.BaseUnitTest;
@@ -20,7 +20,7 @@ public class ProfileProviderServiceTests extends BaseUnitTest {
     @Autowired
     private ProfileProviderService service;
     @MockBean
-    private ProfileRemoteProvider remoteProvider;
+    private ProfileRemoteProviderImpl remoteProvider;
 
     @BeforeEach
     public void setUp() {
