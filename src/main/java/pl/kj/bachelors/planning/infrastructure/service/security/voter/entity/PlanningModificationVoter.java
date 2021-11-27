@@ -1,4 +1,4 @@
-package pl.kj.bachelors.planning.infrastructure.service.security.voter;
+package pl.kj.bachelors.planning.infrastructure.service.security.voter.entity;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,35 +11,25 @@ import pl.kj.bachelors.planning.domain.model.remote.TeamMember;
 import pl.kj.bachelors.planning.domain.service.user.MemberProvider;
 
 @Component
-public class PlanningAdminVoter extends BasePlanningVoter<PlanningAdministrativeAction> {
+public class PlanningModificationVoter extends BasePlanningEntityVoter<PlanningAdministrativeAction> {
 
     @Autowired
-    protected PlanningAdminVoter(MemberProvider memberProvider) {
+    protected PlanningModificationVoter(MemberProvider memberProvider) {
         super(memberProvider);
     }
 
     @Override
     protected AccessVote voteInternal(Planning subject, PlanningAdministrativeAction action, TeamMember member) {
-        AccessVote vote;
-        switch (action) {
-            case READ:
-                vote = AccessVote.ALLOW;
-                break;
-            case CREATE:
-            case UPDATE:
-            case DELETE:
-                vote = this.hasRole(member, Role.SCRUM_MASTER) ? AccessVote.ALLOW : AccessVote.DENY;
-                break;
-            default:
-                vote = AccessVote.OMIT;
-                break;
-        }
-
-        return vote;
+        return subject.getStatus().equals(PlanningStatus.SCHEDULED) && this.hasRole(member, Role.SCRUM_MASTER)
+                ? AccessVote.ALLOW
+                : AccessVote.DENY;
     }
 
     @Override
     protected PlanningAdministrativeAction[] getSupportedActions() {
-        return PlanningAdministrativeAction.values();
+        return new PlanningAdministrativeAction[] {
+                PlanningAdministrativeAction.UPDATE,
+                PlanningAdministrativeAction.DELETE
+        };
     }
 }

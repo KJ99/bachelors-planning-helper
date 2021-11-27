@@ -27,10 +27,7 @@ public class PlanningUpdateServiceImpl
     }
 
     @Override
-    protected void preUpdate(Planning original, PlanningUpdateModel updateModel) throws Exception {
-        if(!original.getStatus().equals(PlanningStatus.SCHEDULED)) {
-            throw new AccessDeniedException("You cannot update planning that is already finished or progressing");
-        }
+    protected void preUpdate(Planning original, PlanningUpdateModel updateModel) {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         if(!df.format(original.getStartAt().getTime()).equals(updateModel.getStartDate())) {
             TimeZone timeZone = RequestHandler.getRequestTimeZone().orElse(TimeZone.getDefault());

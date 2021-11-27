@@ -64,18 +64,4 @@ public class PlanningUpdateServiceTests extends BaseUnitTest {
 
         assertThat(thrown).isInstanceOf(AggregatedApiError.class);
     }
-
-    @Test
-    public void testUpdate_AccessDenied() throws IOException {
-        Planning original = this.repository.findById(2).orElseThrow();
-        PatchOperation[] ops = new PatchOperation[] {
-                new PatchOperation("replace", "/title", "hello"),
-                new PatchOperation("replace", "/start_date", "4999-06-06 12:20:20")
-        };
-        String patchString = this.serialize(ops);
-        JsonPatch patch = JsonPatch.fromJson(this.objectMapper.readTree(patchString));
-        Throwable thrown = catchThrowable(() -> this.service.processUpdate(original, patch, PlanningUpdateModel.class));
-
-        assertThat(thrown).isInstanceOf(AccessDeniedException.class);
-    }
 }

@@ -4,30 +4,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
 import pl.kj.bachelors.planning.domain.model.extension.AccessVote;
-import pl.kj.bachelors.planning.domain.service.security.AccessControlService;
-import pl.kj.bachelors.planning.domain.service.security.voter.ActionVoter;
+import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.domain.service.security.voter.EntityVoter;
 import pl.kj.bachelors.planning.infrastructure.user.RequestHandler;
 
 import java.util.Set;
 
 @Service
-public class AccessControlServiceImpl<S, A> implements AccessControlService<S, A> {
-    public final Set<ActionVoter<S, A>> voters;
+public class EntityAccessControlServiceImpl<T> implements EntityAccessControlService<T> {
+    protected final Set<EntityVoter<T>> voters;
 
     @Autowired(required = false)
-    public AccessControlServiceImpl(Set<ActionVoter<S, A>> voters) {
+    public EntityAccessControlServiceImpl(Set<EntityVoter<T>> voters) {
         this.voters = voters;
     }
 
     @Override
-    public void ensureThatUserHasAccess(S subject, A action) throws AccessDeniedException {
+    public void ensureThatUserHasAccess(T subject, Object action) throws AccessDeniedException {
         String uid = RequestHandler.getCurrentUserId().orElseThrow(AccessDeniedException::new);
-        for(ActionVoter<S, A> voter : voters) {
+        for(EntityVoter<T> voter : voters) {
             if(voter.vote(subject, action, uid).equals(AccessVote.DENY)) {
                 throw new AccessDeniedException();
             }
         }
-
     }
 }

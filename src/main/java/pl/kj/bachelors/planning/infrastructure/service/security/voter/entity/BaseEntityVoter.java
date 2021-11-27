@@ -1,11 +1,11 @@
-package pl.kj.bachelors.planning.infrastructure.service.security.voter;
+package pl.kj.bachelors.planning.infrastructure.service.security.voter.entity;
 
 import pl.kj.bachelors.planning.domain.model.extension.AccessVote;
-import pl.kj.bachelors.planning.domain.service.security.voter.Voter;
+import pl.kj.bachelors.planning.domain.service.security.voter.EntityVoter;
 
 import java.util.Arrays;
 
-public abstract class BaseVoter <T, A> implements Voter<T> {
+public abstract class BaseEntityVoter<T, A> implements EntityVoter<T> {
     @Override
     @SuppressWarnings({"unchecked", "SuspiciousMethodCalls"})
     public AccessVote vote(T subject, Object action, String userId) {

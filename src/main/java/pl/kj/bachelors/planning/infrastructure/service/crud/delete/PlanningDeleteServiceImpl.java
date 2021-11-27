@@ -17,10 +17,4 @@ public class PlanningDeleteServiceImpl
         super(repository);
     }
 
-    @Override
-    protected void preDelete(Planning entity) throws Exception {
-        if(!entity.getStatus().equals(PlanningStatus.SCHEDULED)) {
-            throw new AccessDeniedException("Cannot delete finished or progressing planning!");
-        }
-    }
 }

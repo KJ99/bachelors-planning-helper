@@ -1,4 +1,4 @@
-package pl.kj.bachelors.planning.infrastructure.service.security.voter;
+package pl.kj.bachelors.planning.infrastructure.service.security.voter.entity;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
@@ -10,11 +10,11 @@ import pl.kj.bachelors.planning.domain.service.user.MemberProvider;
 import java.util.List;
 import java.util.Optional;
 
-public abstract   class BasePlanningVoter<A> extends BaseVoter<Planning, A> {
+public abstract   class BasePlanningEntityVoter<A> extends BaseEntityVoter<Planning, A> {
     private final MemberProvider memberProvider;
 
     @Autowired
-    protected BasePlanningVoter(MemberProvider memberProvider) {
+    protected BasePlanningEntityVoter(MemberProvider memberProvider) {
         this.memberProvider = memberProvider;
     }
 

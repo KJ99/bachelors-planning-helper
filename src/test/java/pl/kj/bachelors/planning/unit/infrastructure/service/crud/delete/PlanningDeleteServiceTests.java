@@ -26,12 +26,4 @@ public class PlanningDeleteServiceTests extends BaseUnitTest {
         assertThat(thrown).isNull();
         assertThat(this.repository.findById(1)).isNotPresent();
     }
-
-    @Test
-    public void testDelete_AccessDenied() {
-        Planning planning = this.repository.findById(2).orElseThrow();
-        Throwable thrown = catchThrowable(() -> this.service.delete(planning));
-        assertThat(thrown).isInstanceOf(AccessDeniedException.class);
-        assertThat(this.repository.findById(2)).isPresent();
-    }
 }

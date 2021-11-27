@@ -23,6 +23,7 @@ import pl.kj.bachelors.planning.domain.service.crud.create.PlanningCreateService
 import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningDeleteService;
 import pl.kj.bachelors.planning.domain.service.crud.read.PlanningReadService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningUpdateService;
+import pl.kj.bachelors.planning.domain.service.security.AccessControlService;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 
@@ -38,6 +39,7 @@ public class PlanningApiController extends BaseApiController {
     private final PlanningRepository repository;
     private final PlanningReadService readService;
     private final PlanningDeleteService deleteService;
+    private final AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl;
 
     @Autowired
     public PlanningApiController(
@@ -46,20 +48,20 @@ public class PlanningApiController extends BaseApiController {
             EntityAccessControlService<Planning> accessControl,
             PlanningRepository repository,
             PlanningReadService readService,
-            PlanningDeleteService deleteService) {
+            PlanningDeleteService deleteService,
+            AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl) {
         this.createService = createService;
         this.updateService = updateService;
         this.accessControl = accessControl;
         this.repository = repository;
         this.readService = readService;
         this.deleteService = deleteService;
+        this.createAndReadAccessControl = createAndReadAccessControl;
     }
 
     @PostMapping
     public ResponseEntity<PlanningResponse> post(@RequestBody PlanningCreateModel model) throws Exception {
-        Planning temp = new Planning();
-        temp.setTeamId(model.getTeamId());
-        this.accessControl.ensureThatUserHasAccess(temp, PlanningAdministrativeAction.CREATE);
+        this.createAndReadAccessControl.ensureThatUserHasAccess(model.getTeamId(), PlanningAdministrativeAction.CREATE);
         Planning result = this.createService.create(model, Planning.class);
 
         return ResponseEntity
@@ -82,9 +84,7 @@ public class PlanningApiController extends BaseApiController {
     public ResponseEntity<PageResponse<PlanningResponse>> get(
             @RequestParam("team-id") Integer teamId,
             @RequestParam Map<String, String> params) throws AccessDeniedException {
-        Planning temp = new Planning();
-        temp.setTeamId(teamId);
-        this.accessControl.ensureThatUserHasAccess(temp, PlanningAdministrativeAction.READ);
+        this.createAndReadAccessControl.ensureThatUserHasAccess(teamId, PlanningAdministrativeAction.READ);
 
         PagingQuery query = this.parseQueryParams(params, PagingQuery.class);
         PlanningSearchModel search = this.parseQueryParams(params, PlanningSearchModel.class);
@@ -99,14 +99,15 @@ public class PlanningApiController extends BaseApiController {
     @GetMapping("/incoming")
     public ResponseEntity<PlanningResponse> getIncoming(@RequestParam("team-id") Integer teamId)
             throws AccessDeniedException, ResourceNotFoundException {
+        this.createAndReadAccessControl.ensureThatUserHasAccess(teamId, PlanningAdministrativeAction.READ);
         Planning planning = this.readService.readIncoming(teamId).orElseThrow(ResourceNotFoundException::new);
-        this.accessControl.ensureThatUserHasAccess(planning, PlanningAdministrativeAction.READ);
 
         return ResponseEntity.ok(this.map(planning, PlanningResponse.class));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlanningResponse> getParticular(@PathVariable Integer id) throws AccessDeniedException, ResourceNotFoundException {
+    public ResponseEntity<PlanningResponse> getParticular(@PathVariable Integer id)
+            throws AccessDeniedException, ResourceNotFoundException {
         Planning planning = this.readService.readParticular(id).orElseThrow(ResourceNotFoundException::new);
         this.accessControl.ensureThatUserHasAccess(planning, PlanningAdministrativeAction.READ);
 
