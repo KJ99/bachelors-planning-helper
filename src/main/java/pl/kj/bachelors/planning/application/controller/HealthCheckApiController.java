@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import pl.kj.bachelors.planning.application.dto.response.health.HealthCheckResponse;
 import pl.kj.bachelors.planning.application.service.HealthCheckService;
 
+import java.sql.Time;
+import java.util.TimeZone;
+
 @RestController
 @RequestMapping(value = "/v1/health")
 @Tag(name = "Health")
