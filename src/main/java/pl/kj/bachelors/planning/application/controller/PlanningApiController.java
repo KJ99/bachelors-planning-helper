@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.relational.core.sql.In;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +20,13 @@ import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAdministra
 import pl.kj.bachelors.planning.domain.model.search.PlanningSearchModel;
 import pl.kj.bachelors.planning.domain.model.update.PlanningUpdateModel;
 import pl.kj.bachelors.planning.domain.service.crud.create.PlanningCreateService;
+import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningDeleteService;
 import pl.kj.bachelors.planning.domain.service.crud.read.PlanningReadService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningUpdateService;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/plannings")
@@ -38,6 +37,7 @@ public class PlanningApiController extends BaseApiController {
     private final EntityAccessControlService<Planning> accessControl;
     private final PlanningRepository repository;
     private final PlanningReadService readService;
+    private final PlanningDeleteService deleteService;
 
     @Autowired
     public PlanningApiController(
@@ -45,12 +45,14 @@ public class PlanningApiController extends BaseApiController {
             PlanningUpdateService updateService,
             EntityAccessControlService<Planning> accessControl,
             PlanningRepository repository,
-            PlanningReadService readService) {
+            PlanningReadService readService,
+            PlanningDeleteService deleteService) {
         this.createService = createService;
         this.updateService = updateService;
         this.accessControl = accessControl;
         this.repository = repository;
         this.readService = readService;
+        this.deleteService = deleteService;
     }
 
     @PostMapping
@@ -76,9 +78,9 @@ public class PlanningApiController extends BaseApiController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/teams/{teamId}")
+    @GetMapping
     public ResponseEntity<PageResponse<PlanningResponse>> get(
-            @PathVariable Integer teamId,
+            @RequestParam("team-id") Integer teamId,
             @RequestParam Map<String, String> params) throws AccessDeniedException {
         Planning temp = new Planning();
         temp.setTeamId(teamId);
@@ -93,6 +95,16 @@ public class PlanningApiController extends BaseApiController {
         return ResponseEntity.ok(this.createPageResponse(page, PlanningResponse.class));
     }
 
+
+    @GetMapping("/incoming")
+    public ResponseEntity<PlanningResponse> getIncoming(@RequestParam("team-id") Integer teamId)
+            throws AccessDeniedException, ResourceNotFoundException {
+        Planning planning = this.readService.readIncoming(teamId).orElseThrow(ResourceNotFoundException::new);
+        this.accessControl.ensureThatUserHasAccess(planning, PlanningAdministrativeAction.READ);
+
+        return ResponseEntity.ok(this.map(planning, PlanningResponse.class));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PlanningResponse> getParticular(@PathVariable Integer id) throws AccessDeniedException, ResourceNotFoundException {
         Planning planning = this.readService.readParticular(id).orElseThrow(ResourceNotFoundException::new);
@@ -101,11 +113,13 @@ public class PlanningApiController extends BaseApiController {
         return ResponseEntity.ok(this.map(planning, PlanningResponse.class));
     }
 
-    @GetMapping("/teams/{teamId}/incoming")
-    public ResponseEntity<PlanningResponse> getIncoming(@PathVariable Integer teamId) throws AccessDeniedException, ResourceNotFoundException {
-        Planning planning = this.readService.readIncoming(teamId).orElseThrow(ResourceNotFoundException::new);
-        this.accessControl.ensureThatUserHasAccess(planning, PlanningAdministrativeAction.READ);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Integer id) throws Exception {
+        Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        this.accessControl.ensureThatUserHasAccess(planning, PlanningAdministrativeAction.DELETE);
 
-        return ResponseEntity.ok(this.map(planning, PlanningResponse.class));
+        this.deleteService.delete(planning);
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -172,7 +172,7 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
     public void testGet_Ok() throws Exception {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
         this.mockMvc.perform(
-                get("/v1/plannings/teams/1")
+                get("/v1/plannings?team-id=1")
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isOk());
     }
@@ -180,7 +180,7 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
     @Test
     public void testGet_Unauthorized() throws Exception {
         this.mockMvc.perform(
-                get("/v1/plannings/teams/1")
+                get("/v1/plannings?team-id=1")
         ).andExpect(status().isUnauthorized());
     }
 
@@ -188,7 +188,7 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
     public void testGet_Forbidden() throws Exception {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
         this.mockMvc.perform(
-                get("/v1/plannings/teams/1")
+                get("/v1/plannings?team-id=1")
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isForbidden());
     }
@@ -222,7 +222,7 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
     public void testGetIncoming_Ok() throws Exception {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
         this.mockMvc.perform(
-                get("/v1/plannings/teams/1/incoming")
+                get("/v1/plannings/incoming?team-id=1")
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isOk());
     }
@@ -230,7 +230,7 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
     @Test
     public void testGetIncoming_Unauthorized() throws Exception {
         this.mockMvc.perform(
-                get("/v1/plannings/teams/1/incoming")
+                get("/v1/plannings/incoming?team-id=1")
         ).andExpect(status().isUnauthorized());
     }
 
@@ -238,7 +238,32 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
     public void testGetIncoming_Forbidden() throws Exception {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
         this.mockMvc.perform(
-                get("/v1/plannings/teams/1/incoming")
+                get("/v1/plannings/incoming?team-id=1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testDelete_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testDelete_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                delete("/v1/plannings/1")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testDelete_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/1")
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isForbidden());
     }
