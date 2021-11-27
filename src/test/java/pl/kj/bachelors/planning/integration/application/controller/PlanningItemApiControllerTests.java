@@ -148,6 +148,80 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
         ).andExpect(status().isForbidden());
     }
 
+    @Test
+    public void testGet_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGet_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGet_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetParticular_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetParticular_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items/1")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGetParticular_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetFocused_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items/focused")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetFocused_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items/focused")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGetFocused_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1/items/focused")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
 
     private TeamMember createTeamMember(String uid, List<Role> roles) {
         var member = new TeamMember();

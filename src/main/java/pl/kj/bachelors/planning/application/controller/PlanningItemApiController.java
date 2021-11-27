@@ -20,6 +20,9 @@ import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlServi
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 
+import java.util.Collection;
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/plannings/{planningId}/items")
 @Authentication
@@ -71,5 +74,40 @@ public class PlanningItemApiController extends BaseApiController {
         this.updateService.processUpdate(item, jsonPatch, PlanningItemUpdateModel.class);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<Collection<PlanningItemResponse>> get(@PathVariable Integer planningId)
+            throws ResourceNotFoundException, AccessDeniedException {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.READ);
+
+        List<PlanningItem> result = this.repository.findByPlanning(planning);
+
+        return ResponseEntity.ok(this.mapCollection(result, PlanningItemResponse.class));
+    }
+
+    @GetMapping("/{itemId}")
+    public ResponseEntity<PlanningItemResponse> getParticular(
+            @PathVariable Integer planningId,
+            @PathVariable Integer itemId) throws ResourceNotFoundException, AccessDeniedException {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.READ);
+
+        PlanningItem result = this.repository.findById(itemId).orElseThrow(ResourceNotFoundException::new);
+
+        return ResponseEntity.ok(this.map(result, PlanningItemResponse.class));
+    }
+
+    @GetMapping("/focused")
+    public ResponseEntity<PlanningItemResponse> getFocused(@PathVariable Integer planningId)
+            throws ResourceNotFoundException, AccessDeniedException {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.READ);
+
+        PlanningItem result = this.repository.findFirstByPlanningAndFocused(planning, true)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        return ResponseEntity.ok(this.map(result, PlanningItemResponse.class));
     }
 }

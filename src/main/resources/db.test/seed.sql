@@ -12,4 +12,5 @@
         (3, 1, 'Planning Scheduled', '2028-01-01 23:50:00', 'Europe/Warsaw', 'SCHEDULED', '2020-01-01 00:00:00');
 
 insert into items (id, title, description, focused, planning_id) values
-    (1, 'Some Item', '', 0, 1);
+    (1, 'Some Item', '', 0, 1),
+    (2, 'Some Item', '', 1, 1);
