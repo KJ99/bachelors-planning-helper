@@ -27,12 +27,8 @@ public class PlanningAdminVoter extends BasePlanningVoter<PlanningAdministrative
                 break;
             case CREATE:
             case UPDATE:
-                vote = this.hasRole(member, Role.SCRUM_MASTER) ? AccessVote.ALLOW : AccessVote.DENY;
-                break;
             case DELETE:
-                vote = this.hasRole(member, Role.SCRUM_MASTER) && subject.getStatus().equals(PlanningStatus.SCHEDULED)
-                        ? AccessVote.ALLOW
-                        : AccessVote.DENY;
+                vote = this.hasRole(member, Role.SCRUM_MASTER) ? AccessVote.ALLOW : AccessVote.DENY;
                 break;
             default:
                 vote = AccessVote.OMIT;

@@ -7,11 +7,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pl.kj.bachelors.planning.application.dto.response.health.HealthCheckResponse;
 import pl.kj.bachelors.planning.application.dto.response.health.SingleCheckResponse;
+import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
 import pl.kj.bachelors.planning.application.model.HealthCheckResult;
 import pl.kj.bachelors.planning.application.model.SingleCheckResult;
 import pl.kj.bachelors.planning.domain.config.ApiConfig;
 import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
+import pl.kj.bachelors.planning.domain.model.update.PlanningUpdateModel;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -72,6 +74,42 @@ public class MapperConfig {
             }
         });
 
+        mapper.addMappings(new PropertyMap<Planning, PlanningResponse>() {
+            @Override
+            protected void configure() {
+                map().setStartDate(source.getStartAt());
+            }
+        });
+
+        mapper.addMappings(new PropertyMap<Planning, PlanningUpdateModel>() {
+            @Override
+            protected void configure() {
+                using(ctx -> {
+                    Planning entity = (Planning) ctx.getSource();
+                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    return df.format(entity.getStartAt().getTime());
+                }).map(source, destination.getStartDate());
+            }
+        });
+
+        mapper.addMappings(new PropertyMap<PlanningUpdateModel, Planning>() {
+            @Override
+            protected void configure() {
+                using(ctx -> {
+                    PlanningUpdateModel model = (PlanningUpdateModel) ctx.getSource();
+                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    Calendar result;
+                    try {
+                        result = Calendar.getInstance();
+                        result.setTime(df.parse(model.getStartDate()));
+                    } catch (ParseException e) {
+                        result = null;
+                    }
+
+                    return result;
+                }).map(source, destination.getStartAt());
+            }
+        });
         return mapper;
     }
 }
