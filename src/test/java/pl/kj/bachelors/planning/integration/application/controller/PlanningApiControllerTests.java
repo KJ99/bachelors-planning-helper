@@ -268,6 +268,60 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
         ).andExpect(status().isForbidden());
     }
 
+    @Test
+    public void testStart_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                put("/v1/plannings/1/start")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testStart_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                put("/v1/plannings/2/start")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testStart_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                put("/v1/plannings/1/start")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testClose_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                put("/v1/plannings/4/finish")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testClose_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                put("/v1/plannings/1/finish")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testClose_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                put("/v1/plannings/4/finish")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
     private TeamMember createTeamMember(String uid, List<Role> roles) {
         var member = new TeamMember();
         member.setUserId(uid);

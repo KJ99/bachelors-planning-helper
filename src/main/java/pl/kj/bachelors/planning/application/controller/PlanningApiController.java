@@ -13,9 +13,11 @@ import pl.kj.bachelors.planning.application.dto.response.page.PageResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
 import pl.kj.bachelors.planning.domain.annotation.Authentication;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
+import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.exception.ResourceNotFoundException;
 import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
+import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAction;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAdministrativeAction;
 import pl.kj.bachelors.planning.domain.model.search.PlanningSearchModel;
 import pl.kj.bachelors.planning.domain.model.update.PlanningUpdateModel;
@@ -23,6 +25,7 @@ import pl.kj.bachelors.planning.domain.service.crud.create.PlanningCreateService
 import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningDeleteService;
 import pl.kj.bachelors.planning.domain.service.crud.read.PlanningReadService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningUpdateService;
+import pl.kj.bachelors.planning.domain.service.management.PlanningManager;
 import pl.kj.bachelors.planning.domain.service.security.AccessControlService;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
@@ -40,6 +43,7 @@ public class PlanningApiController extends BaseApiController {
     private final PlanningReadService readService;
     private final PlanningDeleteService deleteService;
     private final AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl;
+    private final PlanningManager manager;
 
     @Autowired
     public PlanningApiController(
@@ -49,7 +53,8 @@ public class PlanningApiController extends BaseApiController {
             PlanningRepository repository,
             PlanningReadService readService,
             PlanningDeleteService deleteService,
-            AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl) {
+            AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl,
+            PlanningManager manager) {
         this.createService = createService;
         this.updateService = updateService;
         this.accessControl = accessControl;
@@ -57,6 +62,7 @@ public class PlanningApiController extends BaseApiController {
         this.readService = readService;
         this.deleteService = deleteService;
         this.createAndReadAccessControl = createAndReadAccessControl;
+        this.manager = manager;
     }
 
     @PostMapping
@@ -123,4 +129,27 @@ public class PlanningApiController extends BaseApiController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/start")
+    public ResponseEntity<?> start(@PathVariable Integer id)
+            throws ResourceNotFoundException, AccessDeniedException, ApiError {
+        Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        this.accessControl.ensureThatUserHasAccess(planning, PlanningAction.START);
+
+        this.manager.open(planning);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/finish")
+    public ResponseEntity<?> finish(@PathVariable Integer id)
+            throws ResourceNotFoundException, AccessDeniedException, ApiError {
+        Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        this.accessControl.ensureThatUserHasAccess(planning, PlanningAction.COMPLETE);
+
+        this.manager.close(planning);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }
