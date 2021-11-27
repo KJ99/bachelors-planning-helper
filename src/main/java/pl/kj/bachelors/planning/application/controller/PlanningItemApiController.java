@@ -15,6 +15,7 @@ import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningItemAdministrativeAction;
 import pl.kj.bachelors.planning.domain.model.update.PlanningItemUpdateModel;
 import pl.kj.bachelors.planning.domain.service.crud.create.PlanningItemCreateService;
+import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningItemDeleteService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningItemUpdateService;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
@@ -32,6 +33,7 @@ public class PlanningItemApiController extends BaseApiController {
     private final PlanningRepository planningRepository;
     private final PlanningItemUpdateService updateService;
     private final PlanningItemRepository repository;
+    private final PlanningItemDeleteService deleteService;
 
     @Autowired
     public PlanningItemApiController(
@@ -39,12 +41,14 @@ public class PlanningItemApiController extends BaseApiController {
             EntityAccessControlService<Planning> planningAccessControlService,
             PlanningRepository planningRepository,
             PlanningItemUpdateService updateService,
-            PlanningItemRepository repository) {
+            PlanningItemRepository repository,
+            PlanningItemDeleteService deleteService) {
         this.createService = createService;
         this.planningAccessControlService = planningAccessControlService;
         this.planningRepository = planningRepository;
         this.updateService = updateService;
         this.repository = repository;
+        this.deleteService = deleteService;
     }
 
     @PostMapping
@@ -109,5 +113,16 @@ public class PlanningItemApiController extends BaseApiController {
                 .orElseThrow(ResourceNotFoundException::new);
 
         return ResponseEntity.ok(this.map(result, PlanningItemResponse.class));
+    }
+
+    @DeleteMapping("/{itemId}")
+    public ResponseEntity<?> delete(@PathVariable Integer planningId, @PathVariable Integer itemId) throws Exception {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.DELETE);
+        PlanningItem entity = this.repository.findById(itemId).orElseThrow(ResourceNotFoundException::new);
+
+        this.deleteService.delete(entity);
+
+        return ResponseEntity.noContent().build();
     }
 }

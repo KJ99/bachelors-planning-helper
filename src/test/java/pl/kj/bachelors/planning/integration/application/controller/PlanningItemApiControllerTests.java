@@ -223,6 +223,40 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
         ).andExpect(status().isForbidden());
     }
 
+    @Test
+    public void testDelete_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/1/items/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testDelete_NotFound() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/1/items/-1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testDelete_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                delete("/v1/plannings/1/items/1")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testDelete_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/1/items/1")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
     private TeamMember createTeamMember(String uid, List<Role> roles) {
         var member = new TeamMember();
         member.setUserId(uid);
