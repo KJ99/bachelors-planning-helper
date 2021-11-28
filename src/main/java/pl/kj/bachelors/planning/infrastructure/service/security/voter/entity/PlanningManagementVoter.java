@@ -21,7 +21,8 @@ public class PlanningManagementVoter extends BasePlanningEntityVoter<PlanningAct
         return new PlanningAction[] {
                 PlanningAction.START,
                 PlanningAction.COMPLETE,
-                PlanningAction.CHANGE_CURRENT
+                PlanningAction.CHANGE_CURRENT,
+                PlanningAction.SET_ESTIMATION
         };
     }
 

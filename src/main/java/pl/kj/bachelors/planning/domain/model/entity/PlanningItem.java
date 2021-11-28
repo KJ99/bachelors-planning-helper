@@ -19,6 +19,7 @@ public class PlanningItem {
     @JoinColumn(name = "planning_id", referencedColumnName = "id")
     private Planning planning;
     private Audit audit;
+    private Integer estimation;
 
     public PlanningItem() {
         this.audit = new Audit();
@@ -72,4 +73,11 @@ public class PlanningItem {
         this.planning = planning;
     }
 
+    public Integer getEstimation() {
+        return estimation;
+    }
+
+    public void setEstimation(Integer estimation) {
+        this.estimation = estimation;
+    }
 }

@@ -1,5 +1,6 @@
 package pl.kj.bachelors.planning.infrastructure.service.management;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,5 +40,10 @@ public class PlanningManagementService implements PlanningManager {
         planning.setStatus(PlanningStatus.FINISHED);
 
         this.repository.save(planning);
+    }
+
+    @Override
+    public void changeVotingStatus(boolean enabled) throws ApiError {
+        throw new NotImplementedException();
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
+import pl.kj.bachelors.planning.application.dto.request.SetEstimationRequest;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.extension.Role;
@@ -350,6 +351,69 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
         this.mockMvc.perform(
                 put("/v1/plannings/4/items/next/focus")
                         .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testEstimate_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        var request = new SetEstimationRequest();
+        request.setValue(8);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/4/estimate")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testEstimate_BadRequest_WrongValue() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        var request = new SetEstimationRequest();
+        request.setValue(7);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/4/estimate")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testEstimate_BadRequest_NotFocused() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        var request = new SetEstimationRequest();
+        request.setValue(1);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/5/estimate")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testEstimate_Unauthorized() throws Exception {
+        var request = new SetEstimationRequest();
+        request.setValue(8);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/4/estimate")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testEstimate_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        var request = new SetEstimationRequest();
+        request.setValue(8);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/4/estimate")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
         ).andExpect(status().isForbidden());
     }
 

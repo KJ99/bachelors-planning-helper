@@ -7,9 +7,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import pl.kj.bachelors.planning.application.dto.request.SetEstimationRequest;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
 import pl.kj.bachelors.planning.domain.annotation.Authentication;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
+import pl.kj.bachelors.planning.domain.exception.AggregatedApiError;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.exception.ResourceNotFoundException;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
@@ -22,6 +24,7 @@ import pl.kj.bachelors.planning.domain.service.crud.create.PlanningItemCreateSer
 import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningItemDeleteService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningItemUpdateService;
 import pl.kj.bachelors.planning.domain.service.file.CsvImporter;
+import pl.kj.bachelors.planning.domain.service.management.EstimationManager;
 import pl.kj.bachelors.planning.domain.service.management.FocusManager;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
@@ -44,6 +47,7 @@ public class PlanningItemApiController extends BaseApiController {
     private final PlanningItemDeleteService deleteService;
     private final CsvImporter csvImporter;
     private final FocusManager focusManager;
+    private final EstimationManager estimationManager;
 
     @Autowired
     public PlanningItemApiController(
@@ -54,7 +58,8 @@ public class PlanningItemApiController extends BaseApiController {
             PlanningItemRepository repository,
             PlanningItemDeleteService deleteService,
             CsvImporter csvImporter,
-            FocusManager focusManager) {
+            FocusManager focusManager,
+            EstimationManager estimationManager) {
         this.createService = createService;
         this.planningAccessControlService = planningAccessControlService;
         this.planningRepository = planningRepository;
@@ -63,6 +68,7 @@ public class PlanningItemApiController extends BaseApiController {
         this.deleteService = deleteService;
         this.csvImporter = csvImporter;
         this.focusManager = focusManager;
+        this.estimationManager = estimationManager;
     }
 
     @PostMapping
@@ -184,5 +190,22 @@ public class PlanningItemApiController extends BaseApiController {
         var focused = this.repository.findFirstByPlanningAndFocused(planning, true).orElseThrow();
 
         return ResponseEntity.ok(this.map(focused, PlanningItemResponse.class));
+    }
+
+    @PutMapping("/{itemId}/estimate")
+    public ResponseEntity<?> estimate(
+            @PathVariable Integer planningId,
+            @PathVariable Integer itemId,
+            @RequestBody SetEstimationRequest request)
+            throws AccessDeniedException, ResourceNotFoundException, AggregatedApiError, ApiError {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.SET_ESTIMATION);
+        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
+        this.ensureThatModelIsValid(request);
+
+        this.estimationManager.setEstimation(item, request.getValue());
+
+        return ResponseEntity.noContent().build();
     }
 }

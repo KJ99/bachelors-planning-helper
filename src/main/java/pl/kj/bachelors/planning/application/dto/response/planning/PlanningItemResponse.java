@@ -4,6 +4,7 @@ public class PlanningItemResponse {
     private int id;
     private String title;
     private String description;
+    private Integer estimation;
 
     public String getTitle() {
         return title;
@@ -27,5 +28,13 @@ public class PlanningItemResponse {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public Integer getEstimation() {
+        return estimation;
+    }
+
+    public void setEstimation(Integer estimation) {
+        this.estimation = estimation;
     }
 }
