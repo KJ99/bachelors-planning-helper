@@ -10,6 +10,8 @@ import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.service.management.PlanningManager;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 
+import java.util.List;
+
 @Service
 public class PlanningManagementService implements PlanningManager {
     private final PlanningRepository repository;
@@ -43,7 +45,20 @@ public class PlanningManagementService implements PlanningManager {
     }
 
     @Override
-    public void changeVotingStatus(boolean enabled) throws ApiError {
-        throw new NotImplementedException();
+    public void enableVoting(Planning planning) throws ApiError {
+        if(!planning.hasStatusIn(List.of(PlanningStatus.PROGRESSING))) {
+            throw new ApiError("", "PL.123", null);
+        }
+        planning.setStatus(PlanningStatus.VOTING);
+        this.repository.save(planning);
+    }
+
+    @Override
+    public void disableVoting(Planning planning) throws ApiError {
+        if(!planning.hasStatusIn(List.of(PlanningStatus.VOTING))) {
+            throw new ApiError("", "PL.124", null);
+        }
+        planning.setStatus(PlanningStatus.PROGRESSING);
+        this.repository.save(planning);
     }
 }

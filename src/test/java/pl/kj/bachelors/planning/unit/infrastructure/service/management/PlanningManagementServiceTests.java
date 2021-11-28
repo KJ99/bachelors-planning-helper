@@ -51,4 +51,34 @@ public class PlanningManagementServiceTests extends BaseUnitTest {
         ApiError ex = (ApiError) thrown;
         assertThat(ex.getCode()).isEqualTo("PL.102");
     }
+
+    @Test
+    public void testEnableVoting() {
+        Planning planning = this.repository.findById(4).orElseThrow();
+        Throwable thrown = catchThrowable(() -> this.service.enableVoting(planning));
+        assertThat(thrown).isNull();
+        assertThat(planning.getStatus()).isEqualTo(PlanningStatus.VOTING);
+    }
+
+    @Test
+    public void testEnableVoting_WrongStatus() {
+        Planning planning = this.repository.findById(1).orElseThrow();
+        Throwable thrown = catchThrowable(() -> this.service.enableVoting(planning));
+        assertThat(thrown).isInstanceOf(ApiError.class);
+    }
+
+    @Test
+    public void testDisableVoting() {
+        Planning planning = this.repository.findById(6).orElseThrow();
+        Throwable thrown = catchThrowable(() -> this.service.disableVoting(planning));
+        assertThat(thrown).isNull();
+        assertThat(planning.getStatus()).isEqualTo(PlanningStatus.PROGRESSING);
+    }
+
+    @Test
+    public void testDisableVoting_WrongStatus() {
+        Planning planning = this.repository.findById(4).orElseThrow();
+        Throwable thrown = catchThrowable(() -> this.service.disableVoting(planning));
+        assertThat(thrown).isInstanceOf(ApiError.class);
+    }
 }

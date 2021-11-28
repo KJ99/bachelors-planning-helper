@@ -11,7 +11,8 @@
         (2, 1, 'Planning Finished', '2021-01-01 23:50:00', 'Europe/Warsaw', 'FINISHED', '2020-01-01 00:00:00'),
         (3, 1, 'Planning Scheduled', '2028-01-01 23:50:00', 'Europe/Warsaw', 'SCHEDULED', '2020-01-01 00:00:00'),
         (4, 1, 'Planning Progressing', '2031-01-01 23:50:00', 'Europe/Warsaw', 'PROGRESSING', '2020-01-01 00:00:00'),
-        (5, 1, 'Planning Progressing', '2031-01-01 23:50:00', 'Europe/Warsaw', 'PROGRESSING', '2020-01-01 00:00:00');
+        (5, 1, 'Planning Progressing', '2031-01-01 23:50:00', 'Europe/Warsaw', 'PROGRESSING', '2020-01-01 00:00:00'),
+        (6, 1, 'Planning Voting', '2031-01-01 23:50:00', 'Europe/Warsaw', 'VOTING', '2020-01-01 00:00:00');
 
 insert into items (id, title, description, focused, planning_id, created_at) values
     (1, 'Some Item', '', 0, 1, '2020-01-01 12:12:12'),

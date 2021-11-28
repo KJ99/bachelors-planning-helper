@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.kj.bachelors.planning.application.dto.request.ChangeVotingStatusRequest;
 import pl.kj.bachelors.planning.application.dto.request.PagingQuery;
 import pl.kj.bachelors.planning.application.dto.response.page.PageResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
@@ -152,4 +153,18 @@ public class PlanningApiController extends BaseApiController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/voting")
+    public ResponseEntity<?> changeVotingStatus(@PathVariable Integer id, @RequestBody ChangeVotingStatusRequest request)
+            throws ResourceNotFoundException, AccessDeniedException, ApiError {
+        Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        this.accessControl.ensureThatUserHasAccess(planning, PlanningAction.CHANGE_CURRENT);
+
+        if(request.isEnabled()) {
+            this.manager.enableVoting(planning);
+        } else {
+            this.manager.disableVoting(planning);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
 }

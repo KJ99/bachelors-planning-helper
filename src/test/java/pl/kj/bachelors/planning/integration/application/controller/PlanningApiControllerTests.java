@@ -6,6 +6,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import pl.kj.bachelors.planning.application.dto.request.ChangeVotingStatusRequest;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
 import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
 import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
@@ -318,6 +319,82 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
         this.mockMvc.perform(
                 put("/v1/plannings/4/finish")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testChangeVotingStatus_True_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();
+        request.setEnabled(true);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/voting")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testChangeVotingStatus_False_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();
+        request.setEnabled(false);
+        this.mockMvc.perform(
+                put("/v1/plannings/6/voting")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testChangeVotingStatus_True_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();
+        request.setEnabled(true);
+        this.mockMvc.perform(
+                put("/v1/plannings/1/voting")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testChangeVotingStatus_False_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();
+        request.setEnabled(false);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/voting")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testChangeVotingStatus_Unauthorized() throws Exception {
+        ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();
+        request.setEnabled(true);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/voting")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testChangeVotingStatus_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();
+        request.setEnabled(true);
+        this.mockMvc.perform(
+                put("/v1/plannings/4/voting")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(this.serialize(request))
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isForbidden());
     }
