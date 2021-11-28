@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
+import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.extension.Role;
 import pl.kj.bachelors.planning.domain.model.remote.TeamMember;
@@ -18,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,6 +32,8 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
     public void setUp() {
         given(this.memberProvider.get(1, "uid-1"))
                 .willReturn(Optional.of(this.createTeamMember("uid-1", List.of(Role.PRODUCT_OWNER))));
+        given(this.memberProvider.get(1, "uid-2"))
+                .willReturn(Optional.of(this.createTeamMember("uid-1", List.of(Role.SCRUM_MASTER))));
         given(this.memberProvider.get(1, "uid-100"))
                 .willReturn(Optional.of(this.createTeamMember("uid-100", List.of(Role.TEAM_MEMBER))));
     }
@@ -273,6 +277,80 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, auth)
 
         ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testFocus_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/3/focus")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testFocus_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        this.mockMvc.perform(
+                put("/v1/plannings/1/items/1/focus")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testFocus_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/3/focus")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testFocus_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/3/focus")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testFocusNext_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        MvcResult result = this.mockMvc.perform(
+                put("/v1/plannings/4/items/next/focus")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk()).andReturn();
+        PlanningItemResponse response = this.deserialize(
+                result.getResponse().getContentAsString(),
+                PlanningItemResponse.class
+        );
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(5);
+    }
+
+    @Test
+    public void testFocusNext_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        this.mockMvc.perform(
+                put("/v1/plannings/1/items/next/focus")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testFocusNext_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/next/focus")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testFocusNext_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                put("/v1/plannings/4/items/next/focus")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
     }
 
     private TeamMember createTeamMember(String uid, List<Role> roles) {

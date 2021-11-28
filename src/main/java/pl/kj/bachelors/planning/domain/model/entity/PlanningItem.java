@@ -1,8 +1,10 @@
 package pl.kj.bachelors.planning.domain.model.entity;
 
 import pl.kj.bachelors.planning.domain.model.embeddable.Audit;
+import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "items")
@@ -69,4 +71,5 @@ public class PlanningItem {
     public void setPlanning(Planning planning) {
         this.planning = planning;
     }
+
 }

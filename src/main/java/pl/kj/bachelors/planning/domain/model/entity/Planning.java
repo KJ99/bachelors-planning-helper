@@ -5,6 +5,8 @@ import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 
 import javax.persistence.*;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
 @Entity
@@ -24,6 +26,8 @@ public class Planning {
     private PlanningStatus status;
     @Embedded
     private Audit audit;
+    @OneToMany(mappedBy = "planning")
+    private Set<PlanningItem> items;
 
     public Planning() {
         this.audit = new Audit();
@@ -83,5 +87,17 @@ public class Planning {
 
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
+    }
+
+    public Set<PlanningItem> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<PlanningItem> items) {
+        this.items = items;
+    }
+
+    public boolean hasStatusIn(List<PlanningStatus> statuses) {
+        return statuses.stream().anyMatch(status -> status.equals(this.getStatus()));
     }
 }

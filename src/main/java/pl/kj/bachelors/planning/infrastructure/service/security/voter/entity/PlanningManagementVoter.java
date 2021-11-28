@@ -20,7 +20,8 @@ public class PlanningManagementVoter extends BasePlanningEntityVoter<PlanningAct
     protected PlanningAction[] getSupportedActions() {
         return new PlanningAction[] {
                 PlanningAction.START,
-                PlanningAction.COMPLETE
+                PlanningAction.COMPLETE,
+                PlanningAction.CHANGE_CURRENT
         };
     }
 

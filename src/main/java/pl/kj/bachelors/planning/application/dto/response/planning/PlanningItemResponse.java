@@ -1,6 +1,7 @@
 package pl.kj.bachelors.planning.application.dto.response.planning;
 
 public class PlanningItemResponse {
+    private int id;
     private String title;
     private String description;
 
@@ -18,5 +19,13 @@ public class PlanningItemResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

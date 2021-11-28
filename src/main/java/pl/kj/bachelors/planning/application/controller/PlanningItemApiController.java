@@ -10,23 +10,24 @@ import org.springframework.web.multipart.MultipartFile;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
 import pl.kj.bachelors.planning.domain.annotation.Authentication;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
-import pl.kj.bachelors.planning.domain.exception.AggregatedApiError;
+import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.exception.ResourceNotFoundException;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
+import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAction;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningItemAdministrativeAction;
 import pl.kj.bachelors.planning.domain.model.update.PlanningItemUpdateModel;
 import pl.kj.bachelors.planning.domain.service.crud.create.PlanningItemCreateService;
 import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningItemDeleteService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningItemUpdateService;
 import pl.kj.bachelors.planning.domain.service.file.CsvImporter;
+import pl.kj.bachelors.planning.domain.service.management.FocusManager;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 
 import javax.servlet.annotation.MultipartConfig;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,6 +43,7 @@ public class PlanningItemApiController extends BaseApiController {
     private final PlanningItemRepository repository;
     private final PlanningItemDeleteService deleteService;
     private final CsvImporter csvImporter;
+    private final FocusManager focusManager;
 
     @Autowired
     public PlanningItemApiController(
@@ -51,7 +53,8 @@ public class PlanningItemApiController extends BaseApiController {
             PlanningItemUpdateService updateService,
             PlanningItemRepository repository,
             PlanningItemDeleteService deleteService,
-            CsvImporter csvImporter) {
+            CsvImporter csvImporter,
+            FocusManager focusManager) {
         this.createService = createService;
         this.planningAccessControlService = planningAccessControlService;
         this.planningRepository = planningRepository;
@@ -59,6 +62,7 @@ public class PlanningItemApiController extends BaseApiController {
         this.repository = repository;
         this.deleteService = deleteService;
         this.csvImporter = csvImporter;
+        this.focusManager = focusManager;
     }
 
     @PostMapping
@@ -83,7 +87,8 @@ public class PlanningItemApiController extends BaseApiController {
             @RequestBody JsonPatch jsonPatch) throws Exception {
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
         this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.UPDATE);
-        PlanningItem item = this.repository.findById(itemId).orElseThrow(ResourceNotFoundException::new);
+        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
 
         this.updateService.processUpdate(item, jsonPatch, PlanningItemUpdateModel.class);
 
@@ -108,7 +113,8 @@ public class PlanningItemApiController extends BaseApiController {
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
         this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.READ);
 
-        PlanningItem result = this.repository.findById(itemId).orElseThrow(ResourceNotFoundException::new);
+        PlanningItem result = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
 
         return ResponseEntity.ok(this.map(result, PlanningItemResponse.class));
     }
@@ -129,7 +135,8 @@ public class PlanningItemApiController extends BaseApiController {
     public ResponseEntity<?> delete(@PathVariable Integer planningId, @PathVariable Integer itemId) throws Exception {
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
         this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.DELETE);
-        PlanningItem entity = this.repository.findById(itemId).orElseThrow(ResourceNotFoundException::new);
+        PlanningItem entity = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
 
         this.deleteService.delete(entity);
 
@@ -150,5 +157,32 @@ public class PlanningItemApiController extends BaseApiController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{itemId}/focus")
+    public ResponseEntity<?> focus(@PathVariable Integer planningId, @PathVariable Integer itemId)
+            throws ResourceNotFoundException, AccessDeniedException, ApiError {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.CHANGE_CURRENT);
+        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
+
+
+        this.focusManager.focus(item);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/next/focus")
+    public ResponseEntity<?> focus(@PathVariable Integer planningId)
+            throws ResourceNotFoundException, AccessDeniedException, ApiError {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.CHANGE_CURRENT);
+
+        this.focusManager.focusNext(planning);
+
+        var focused = this.repository.findFirstByPlanningAndFocused(planning, true).orElseThrow();
+
+        return ResponseEntity.ok(this.map(focused, PlanningItemResponse.class));
     }
 }
