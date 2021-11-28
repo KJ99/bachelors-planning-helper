@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
+import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 import pl.kj.bachelors.planning.infrastructure.service.management.EstimationManagementService;
@@ -26,9 +27,9 @@ public class EstimationManagementServiceTests extends BaseUnitTest {
         Planning planning = this.planningRepository.findById(4).orElseThrow();
         PlanningItem item = this.repository.findFirstByPlanningAndFocused(planning, true).orElseThrow();
 
-        Throwable thrown = catchThrowable(() -> this.service.setEstimation(item, 8));
+        Throwable thrown = catchThrowable(() -> this.service.setEstimation(item, Estimation.M));
         assertThat(thrown).isNull();
-        assertThat(item.getEstimation()).isEqualTo(8);
+        assertThat(item.getEstimation()).isEqualTo(Estimation.M);
     }
 
     @Test
@@ -36,7 +37,7 @@ public class EstimationManagementServiceTests extends BaseUnitTest {
         Planning planning = this.planningRepository.findById(4).orElseThrow();
         PlanningItem item = this.repository.findFirstByPlanningAndFocused(planning, false).orElseThrow();
 
-        Throwable thrown = catchThrowable(() -> this.service.setEstimation(item, 8));
+        Throwable thrown = catchThrowable(() -> this.service.setEstimation(item, Estimation.M));
         assertThat(thrown).isInstanceOf(ApiError.class);
     }
 }

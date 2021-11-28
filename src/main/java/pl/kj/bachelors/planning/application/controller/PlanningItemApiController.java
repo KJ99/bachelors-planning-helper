@@ -17,6 +17,7 @@ import pl.kj.bachelors.planning.domain.exception.ResourceNotFoundException;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
+import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAction;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningItemAdministrativeAction;
 import pl.kj.bachelors.planning.domain.model.update.PlanningItemUpdateModel;
@@ -204,7 +205,7 @@ public class PlanningItemApiController extends BaseApiController {
                 .orElseThrow(ResourceNotFoundException::new);
         this.ensureThatModelIsValid(request);
 
-        this.estimationManager.setEstimation(item, request.getValue());
+        this.estimationManager.setEstimation(item, Estimation.valueOf(request.getValue()));
 
         return ResponseEntity.noContent().build();
     }

@@ -1,6 +1,7 @@
 package pl.kj.bachelors.planning.domain.model.entity;
 
 import pl.kj.bachelors.planning.domain.model.embeddable.Audit;
+import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 
 import javax.persistence.*;
@@ -19,7 +20,8 @@ public class PlanningItem {
     @JoinColumn(name = "planning_id", referencedColumnName = "id")
     private Planning planning;
     private Audit audit;
-    private Integer estimation;
+    @Enumerated(EnumType.STRING)
+    private Estimation estimation;
 
     public PlanningItem() {
         this.audit = new Audit();
@@ -73,11 +75,11 @@ public class PlanningItem {
         this.planning = planning;
     }
 
-    public Integer getEstimation() {
+    public Estimation getEstimation() {
         return estimation;
     }
 
-    public void setEstimation(Integer estimation) {
+    public void setEstimation(Estimation estimation) {
         this.estimation = estimation;
     }
 }

@@ -1,11 +1,11 @@
 package pl.kj.bachelors.planning.infrastructure.service.management;
 
-import com.google.protobuf.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
+import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 import pl.kj.bachelors.planning.domain.service.management.EstimationManager;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 
@@ -20,7 +20,7 @@ public class EstimationManagementService implements EstimationManager {
 
     @Override
     @Transactional(rollbackFor = ApiError.class)
-    public void setEstimation(PlanningItem item, int estimation) throws ApiError {
+    public void setEstimation(PlanningItem item, Estimation estimation) throws ApiError {
         if(!item.isFocused()) {
             throw new ApiError("", "PL.122", null);
         }
