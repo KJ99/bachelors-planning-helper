@@ -7,7 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
-import pl.kj.bachelors.planning.application.dto.request.SetEstimationRequest;
+import pl.kj.bachelors.planning.application.dto.request.EstimationRequest;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.extension.Estimation;
@@ -35,7 +35,7 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
         given(this.memberProvider.get(1, "uid-1"))
                 .willReturn(Optional.of(this.createTeamMember("uid-1", List.of(Role.PRODUCT_OWNER))));
         given(this.memberProvider.get(1, "uid-2"))
-                .willReturn(Optional.of(this.createTeamMember("uid-1", List.of(Role.SCRUM_MASTER))));
+                .willReturn(Optional.of(this.createTeamMember("uid-2", List.of(Role.SCRUM_MASTER))));
         given(this.memberProvider.get(1, "uid-100"))
                 .willReturn(Optional.of(this.createTeamMember("uid-100", List.of(Role.TEAM_MEMBER))));
     }
@@ -380,7 +380,7 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
     @Test
     public void testEstimate_BadRequest_NotFocused() throws Exception {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
-        var request = new SetEstimationRequest();
+        var request = new EstimationRequest();
         request.setValue(Estimation.M.name());
         this.mockMvc.perform(
                 put("/v1/plannings/4/items/5/estimate")
@@ -392,7 +392,7 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
 
     @Test
     public void testEstimate_Unauthorized() throws Exception {
-        var request = new SetEstimationRequest();
+        var request = new EstimationRequest();
         request.setValue(Estimation.M.name());
         this.mockMvc.perform(
                 put("/v1/plannings/4/items/4/estimate")
@@ -404,7 +404,7 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
     @Test
     public void testEstimate_Forbidden() throws Exception {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
-        var request = new SetEstimationRequest();
+        var request = new EstimationRequest();
         request.setValue(Estimation.M.name());
         this.mockMvc.perform(
                 put("/v1/plannings/4/items/4/estimate")
@@ -413,7 +413,108 @@ public class PlanningItemApiControllerTests extends BaseIntegrationTest {
                         .content(this.serialize(request))
         ).andExpect(status().isForbidden());
     }
+    
+    @Test
+    public void testVote_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                post("/v1/plannings/7/items/10/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("{\"value\": \"M\"}")
+        ).andExpect(status().isNoContent());
+    }
 
+    @Test
+    public void testVote_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                post("/v1/plannings/7/items/9/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("{\"value\": \"M\"}")
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testVote_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                post("/v1/plannings/7/items/10/votes")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("{\"value\": \"M\"}")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testVote_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                post("/v1/plannings/7/items/10/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("{\"value\": \"M\"}")
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testClearVotes_NoContent() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/7/items/10/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testClearVotes_BadRequest() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/7/items/8/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testClearVotes_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                    delete("/v1/plannings/7/items/10/votes")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testClearVotes_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                delete("/v1/plannings/7/items/10/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetVotes_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-2"));
+        this.mockMvc.perform(
+                get("/v1/plannings/7/items/10/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetVotes_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/7/items/10/votes")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGetVotes_Forbidden() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-300"));
+        this.mockMvc.perform(
+                get("/v1/plannings/7/items/10/votes")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+    
     private TeamMember createTeamMember(String uid, List<Role> roles) {
         var member = new TeamMember();
         member.setUserId(uid);

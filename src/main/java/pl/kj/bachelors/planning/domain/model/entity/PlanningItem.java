@@ -6,6 +6,7 @@ import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "items")
@@ -22,6 +23,8 @@ public class PlanningItem {
     private Audit audit;
     @Enumerated(EnumType.STRING)
     private Estimation estimation;
+    @OneToMany(mappedBy = "planningItem")
+    private Set<Vote> votes;
 
     public PlanningItem() {
         this.audit = new Audit();
@@ -81,5 +84,13 @@ public class PlanningItem {
 
     public void setEstimation(Estimation estimation) {
         this.estimation = estimation;
+    }
+
+    public Set<Vote> getVotes() {
+        return votes;
+    }
+
+    public void setVotes(Set<Vote> votes) {
+        this.votes = votes;
     }
 }

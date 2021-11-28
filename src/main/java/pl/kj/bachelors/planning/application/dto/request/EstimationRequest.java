@@ -7,7 +7,7 @@ import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
-public class SetEstimationRequest {
+public class EstimationRequest {
     @FromEnum(enumClass = Estimation.class, message = "PL.121")
     @Enumerated(EnumType.STRING)
     private String value;

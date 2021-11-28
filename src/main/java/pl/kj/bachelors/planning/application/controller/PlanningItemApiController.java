@@ -7,8 +7,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import pl.kj.bachelors.planning.application.dto.request.SetEstimationRequest;
+import pl.kj.bachelors.planning.application.dto.request.EstimationRequest;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
+import pl.kj.bachelors.planning.application.dto.response.vote.VoteResponse;
 import pl.kj.bachelors.planning.domain.annotation.Authentication;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
 import pl.kj.bachelors.planning.domain.exception.AggregatedApiError;
@@ -17,6 +18,7 @@ import pl.kj.bachelors.planning.domain.exception.ResourceNotFoundException;
 import pl.kj.bachelors.planning.domain.model.create.PlanningItemCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
+import pl.kj.bachelors.planning.domain.model.entity.Vote;
 import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAction;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningItemAdministrativeAction;
@@ -27,9 +29,12 @@ import pl.kj.bachelors.planning.domain.service.crud.update.PlanningItemUpdateSer
 import pl.kj.bachelors.planning.domain.service.file.CsvImporter;
 import pl.kj.bachelors.planning.domain.service.management.EstimationManager;
 import pl.kj.bachelors.planning.domain.service.management.FocusManager;
+import pl.kj.bachelors.planning.domain.service.management.VoteManager;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
+import pl.kj.bachelors.planning.infrastructure.repository.VoteRepository;
+import pl.kj.bachelors.planning.infrastructure.user.RequestHandler;
 
 import javax.servlet.annotation.MultipartConfig;
 import java.util.Collection;
@@ -49,6 +54,8 @@ public class PlanningItemApiController extends BaseApiController {
     private final CsvImporter csvImporter;
     private final FocusManager focusManager;
     private final EstimationManager estimationManager;
+    private final VoteManager voteManager;
+    private final VoteRepository voteRepository;
 
     @Autowired
     public PlanningItemApiController(
@@ -60,7 +67,9 @@ public class PlanningItemApiController extends BaseApiController {
             PlanningItemDeleteService deleteService,
             CsvImporter csvImporter,
             FocusManager focusManager,
-            EstimationManager estimationManager) {
+            EstimationManager estimationManager,
+            VoteManager voteManager,
+            VoteRepository voteRepository) {
         this.createService = createService;
         this.planningAccessControlService = planningAccessControlService;
         this.planningRepository = planningRepository;
@@ -70,6 +79,8 @@ public class PlanningItemApiController extends BaseApiController {
         this.csvImporter = csvImporter;
         this.focusManager = focusManager;
         this.estimationManager = estimationManager;
+        this.voteManager = voteManager;
+        this.voteRepository = voteRepository;
     }
 
     @PostMapping
@@ -197,7 +208,7 @@ public class PlanningItemApiController extends BaseApiController {
     public ResponseEntity<?> estimate(
             @PathVariable Integer planningId,
             @PathVariable Integer itemId,
-            @RequestBody SetEstimationRequest request)
+            @RequestBody EstimationRequest request)
             throws AccessDeniedException, ResourceNotFoundException, AggregatedApiError, ApiError {
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
         this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.SET_ESTIMATION);
@@ -206,6 +217,52 @@ public class PlanningItemApiController extends BaseApiController {
         this.ensureThatModelIsValid(request);
 
         this.estimationManager.setEstimation(item, Estimation.valueOf(request.getValue()));
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{itemId}/votes")
+    public ResponseEntity<?> vote(
+            @PathVariable Integer planningId,
+            @PathVariable Integer itemId,
+            @RequestBody EstimationRequest request)
+            throws ResourceNotFoundException, AccessDeniedException, AggregatedApiError, ApiError {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.VOTE);
+        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
+        this.ensureThatModelIsValid(request);
+        String uid = RequestHandler.getCurrentUserId().orElseThrow(AccessDeniedException::new);
+
+        this.voteManager.vote(item, uid, Estimation.valueOf(request.getValue()));
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{itemId}/votes")
+    public ResponseEntity<Collection<VoteResponse>> getVotes(
+            @PathVariable Integer planningId,
+            @PathVariable Integer itemId)
+            throws ResourceNotFoundException, AccessDeniedException {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.FETCH_VOTES);
+        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        List<Vote> votes = this.voteRepository.findByPlanningItem(item);
+
+        return ResponseEntity.ok(this.mapCollection(votes, VoteResponse.class));
+    }
+
+    @DeleteMapping("/{itemId}/votes")
+    public ResponseEntity<?> clearVotes(@PathVariable Integer planningId, @PathVariable Integer itemId)
+            throws ResourceNotFoundException, AccessDeniedException, ApiError {
+        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
+        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.CLEAR_VOTES);
+        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        this.voteManager.clearVotes(item);
 
         return ResponseEntity.noContent().build();
     }
