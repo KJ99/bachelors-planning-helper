@@ -2,11 +2,13 @@ package pl.kj.bachelors.planning.infrastructure.service.management;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
+import pl.kj.bachelors.planning.domain.model.event.FocusChangedEvent;
 import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.service.management.FocusManager;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
@@ -16,11 +18,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class FocusManagementService implements FocusManager {
+public class FocusManagementService extends BaseManagementService implements FocusManager {
     private final PlanningItemRepository repository;
 
     @Autowired
-    public FocusManagementService(PlanningItemRepository repository) {
+    public FocusManagementService(PlanningItemRepository repository, ApplicationEventPublisher eventPublisher) {
+        super(eventPublisher);
         this.repository = repository;
     }
 
@@ -40,11 +43,19 @@ public class FocusManagementService implements FocusManager {
         List<PlanningItem> items = this.repository.findByPlanningOrderByAuditCreatedAtAsc(planning);
         int index = this.findCurrentFocusIndex(items) + 1;
         this.clearFocus(planning);
+        Integer focusedItemId = null;
         if(index < items.size()) {
             PlanningItem item = items.get(index);
             item.setFocused(true);
             this.repository.save(item);
+            focusedItemId = item.getId();
         }
+
+        this.publishEvent(new FocusChangedEvent(
+                this,
+                planning.getId(),
+                focusedItemId
+        ));
     }
 
     @Override

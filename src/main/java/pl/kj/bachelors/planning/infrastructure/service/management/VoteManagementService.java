@@ -2,12 +2,14 @@ package pl.kj.bachelors.planning.infrastructure.service.management;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
 import pl.kj.bachelors.planning.domain.model.entity.Vote;
+import pl.kj.bachelors.planning.domain.model.event.MemberVotedEvent;
 import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.service.management.VoteManager;
@@ -17,11 +19,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class VoteManagementService implements VoteManager {
+public class VoteManagementService extends BaseManagementService implements VoteManager {
     private final VoteRepository repository;
 
     @Autowired
-    public VoteManagementService(VoteRepository repository) {
+    public VoteManagementService(VoteRepository repository, ApplicationEventPublisher eventPublisher) {
+        super(eventPublisher);
         this.repository = repository;
     }
 
@@ -38,6 +41,12 @@ public class VoteManagementService implements VoteManager {
         vote.setPlanningItem(item);
 
         this.repository.save(vote);
+        this.publishEvent(new MemberVotedEvent(
+                this,
+                item.getPlanning().getId(),
+                item.getId(),
+                userId
+        ));
     }
 
     @Override
