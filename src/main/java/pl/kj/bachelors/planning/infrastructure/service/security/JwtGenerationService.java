@@ -31,6 +31,17 @@ public class JwtGenerationService implements JwtGenerator {
         return this.generateJwt(userId, issuedAt, expiresAt, additionalClaims, this.config.getSocket().getSecret());
     }
 
+    @Override
+    public String generateToken(String sub, String secret, Map<String, Object> additionalClaims) {
+        return this.generateJwt(
+                sub,
+                Calendar.getInstance(),
+                null,
+                additionalClaims,
+                secret
+        );
+    }
+
     private String generateJwt(
             String userId,
             Calendar issuedAt,

@@ -1,4 +1,4 @@
-package pl.kj.bachelors.planning.domain.model.payload;
+package pl.kj.bachelors.planning.domain.model.payload.message;
 
 import pl.kj.bachelors.planning.domain.model.extension.Estimation;
 

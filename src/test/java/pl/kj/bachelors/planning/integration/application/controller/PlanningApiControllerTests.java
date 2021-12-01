@@ -338,19 +338,6 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
     }
 
     @Test
-    public void testChangeVotingStatus_False_NoContent() throws Exception {
-        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
-        ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();
-        request.setEnabled(false);
-        this.mockMvc.perform(
-                put("/v1/plannings/6/voting")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(this.serialize(request))
-                        .header(HttpHeaders.AUTHORIZATION, auth)
-        ).andExpect(status().isNoContent());
-    }
-
-    @Test
     public void testChangeVotingStatus_True_BadRequest() throws Exception {
         String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
         ChangeVotingStatusRequest request = new ChangeVotingStatusRequest();

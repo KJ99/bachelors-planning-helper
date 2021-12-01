@@ -5,6 +5,7 @@ public enum MessageType {
     MEMBER_LEFT,
     ITEM_FOCUSED,
     VOTING_STATUS,
+    VOTING_RESULT,
     VOTE_CONFIRMED,
     MEMBER_VOTED,
     ITEM_ESTIMATED,

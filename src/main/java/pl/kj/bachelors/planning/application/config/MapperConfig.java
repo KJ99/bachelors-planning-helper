@@ -71,6 +71,8 @@ public class MapperConfig {
 
                     return result;
                 }).map(source, destination.getStartAt());
+
+                skip(destination.getId());
             }
         });
 

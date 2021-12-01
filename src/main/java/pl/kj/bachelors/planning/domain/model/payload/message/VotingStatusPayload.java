@@ -1,4 +1,4 @@
-package pl.kj.bachelors.planning.domain.model.payload;
+package pl.kj.bachelors.planning.domain.model.payload.message;
 
 public class VotingStatusPayload {
     private boolean enabled;

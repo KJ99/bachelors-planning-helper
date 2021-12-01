@@ -33,7 +33,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/members");
+        registry.enableSimpleBroker(
+                "/members",
+                "/status",
+                "/focus",
+                "/votes",
+                "/member-votes",
+                "/estimations",
+                "/commands"
+        );
     }
 
     @Override

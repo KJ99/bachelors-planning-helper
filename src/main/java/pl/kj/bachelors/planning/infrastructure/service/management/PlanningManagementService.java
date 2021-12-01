@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.event.PlanningCompletedEvent;
+import pl.kj.bachelors.planning.domain.model.event.VotingStatusChangedEvent;
 import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.service.management.PlanningManager;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
@@ -55,6 +56,7 @@ public class PlanningManagementService extends BaseManagementService implements 
         }
         planning.setStatus(PlanningStatus.VOTING);
         this.repository.save(planning);
+        this.publishEvent(new VotingStatusChangedEvent(this, planning.getId(), true));
     }
 
     @Override
@@ -64,5 +66,6 @@ public class PlanningManagementService extends BaseManagementService implements 
         }
         planning.setStatus(PlanningStatus.PROGRESSING);
         this.repository.save(planning);
+        this.publishEvent(new VotingStatusChangedEvent(this, planning.getId(), false));
     }
 }

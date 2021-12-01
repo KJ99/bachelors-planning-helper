@@ -34,6 +34,11 @@ public class FocusManagementService extends BaseManagementService implements Foc
         this.clearFocus(item.getPlanning());
         item.setFocused(true);
         this.repository.save(item);
+        this.publishEvent(new FocusChangedEvent(
+                this,
+                item.getPlanning().getId(),
+                item.getId()
+        ));
     }
 
     @Override

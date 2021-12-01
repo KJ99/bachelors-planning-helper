@@ -3,8 +3,10 @@ package pl.kj.bachelors.planning.domain.model.message;
 import pl.kj.bachelors.planning.domain.model.extension.MessageType;
 import pl.kj.bachelors.planning.domain.model.payload.message.MemberPayload;
 
-public class MemberVotedMessage extends Message<MemberPayload> {
-    public MemberVotedMessage(String userId) {
-        super(MessageType.MEMBER_VOTED, new MemberPayload(userId));
+import java.util.List;
+
+public class MembersListMessage extends Message<List<MemberPayload>> {
+    public MembersListMessage(MessageType type, List<MemberPayload> payload) {
+        super(type, payload);
     }
 }

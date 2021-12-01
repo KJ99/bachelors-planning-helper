@@ -67,13 +67,6 @@ public class PlanningManagementServiceTests extends BaseUnitTest {
         assertThat(thrown).isInstanceOf(ApiError.class);
     }
 
-    @Test
-    public void testDisableVoting() {
-        Planning planning = this.repository.findById(6).orElseThrow();
-        Throwable thrown = catchThrowable(() -> this.service.disableVoting(planning));
-        assertThat(thrown).isNull();
-        assertThat(planning.getStatus()).isEqualTo(PlanningStatus.PROGRESSING);
-    }
 
     @Test
     public void testDisableVoting_WrongStatus() {
