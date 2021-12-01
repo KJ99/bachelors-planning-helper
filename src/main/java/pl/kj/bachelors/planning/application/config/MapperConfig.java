@@ -78,6 +78,7 @@ public class MapperConfig {
             @Override
             protected void configure() {
                 map().setStartDate(source.getStartAt());
+                map().setId(source.getId());
             }
         });
 

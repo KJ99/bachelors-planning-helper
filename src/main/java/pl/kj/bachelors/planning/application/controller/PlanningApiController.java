@@ -12,6 +12,7 @@ import pl.kj.bachelors.planning.application.dto.request.ChangeVotingStatusReques
 import pl.kj.bachelors.planning.application.dto.request.PagingQuery;
 import pl.kj.bachelors.planning.application.dto.response.page.PageResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
+import pl.kj.bachelors.planning.application.dto.response.planning.PlanningTokenResponse;
 import pl.kj.bachelors.planning.domain.annotation.Authentication;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
@@ -29,8 +30,11 @@ import pl.kj.bachelors.planning.domain.service.crud.update.PlanningUpdateService
 import pl.kj.bachelors.planning.domain.service.management.PlanningManager;
 import pl.kj.bachelors.planning.domain.service.security.AccessControlService;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
+import pl.kj.bachelors.planning.domain.service.security.JwtGenerator;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
+import pl.kj.bachelors.planning.infrastructure.user.RequestHandler;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -45,6 +49,7 @@ public class PlanningApiController extends BaseApiController {
     private final PlanningDeleteService deleteService;
     private final AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl;
     private final PlanningManager manager;
+    private final JwtGenerator jwtGenerator;
 
     @Autowired
     public PlanningApiController(
@@ -55,7 +60,7 @@ public class PlanningApiController extends BaseApiController {
             PlanningReadService readService,
             PlanningDeleteService deleteService,
             AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl,
-            PlanningManager manager) {
+            PlanningManager manager, JwtGenerator jwtGenerator) {
         this.createService = createService;
         this.updateService = updateService;
         this.accessControl = accessControl;
@@ -64,6 +69,7 @@ public class PlanningApiController extends BaseApiController {
         this.deleteService = deleteService;
         this.createAndReadAccessControl = createAndReadAccessControl;
         this.manager = manager;
+        this.jwtGenerator = jwtGenerator;
     }
 
     @PostMapping
@@ -166,5 +172,22 @@ public class PlanningApiController extends BaseApiController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/token")
+    public ResponseEntity<PlanningTokenResponse> getToken(@PathVariable Integer id)
+            throws ResourceNotFoundException, AccessDeniedException {
+        String uid = RequestHandler.getCurrentUserId().orElseThrow(AccessDeniedException::new);
+        Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        this.accessControl.ensureThatUserHasAccess(planning, PlanningAction.JOIN);
+        Map<String, Object> tokenData = new HashMap<>();
+        tokenData.put("pid", planning.getId());
+
+        String token = this.jwtGenerator.generateWebSocketAccessToken(uid, tokenData);
+
+        PlanningTokenResponse response = new PlanningTokenResponse();
+        response.setAccessToken(token);
+
+        return ResponseEntity.ok(response);
     }
 }

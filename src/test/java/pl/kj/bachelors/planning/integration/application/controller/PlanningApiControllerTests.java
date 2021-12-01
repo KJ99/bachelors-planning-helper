@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.kj.bachelors.planning.application.dto.request.ChangeVotingStatusRequest;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
+import pl.kj.bachelors.planning.application.dto.response.planning.PlanningTokenResponse;
 import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
 import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.model.extension.Role;
@@ -395,6 +396,43 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
                 put("/v1/plannings/4/voting")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(this.serialize(request))
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetToken_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        MvcResult result = this.mockMvc.perform(
+                get("/v1/plannings/4/token")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk()).andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+        PlanningTokenResponse response = this.deserialize(responseBody, PlanningTokenResponse.class);
+        assertThat(response.getAccessToken()).isNotEmpty();
+    }
+
+    @Test
+    public void testGetToken_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/4/token")
+        ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGetToken_Forbidden_PlanningNotStarted() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                get("/v1/plannings/1/token")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetToken_Forbidden_NotMember() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-900"));
+        this.mockMvc.perform(
+                get("/v1/plannings/4/token")
                         .header(HttpHeaders.AUTHORIZATION, auth)
         ).andExpect(status().isForbidden());
     }

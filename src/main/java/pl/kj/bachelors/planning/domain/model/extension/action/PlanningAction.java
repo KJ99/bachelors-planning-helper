@@ -7,5 +7,6 @@ public enum PlanningAction {
     CLEAR_VOTES,
     FETCH_VOTES,
     SET_ESTIMATION,
-    CHANGE_CURRENT
+    CHANGE_CURRENT,
+    JOIN
 }
