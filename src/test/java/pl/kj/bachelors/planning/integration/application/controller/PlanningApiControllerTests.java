@@ -2,6 +2,7 @@ package pl.kj.bachelors.planning.integration.application.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,7 +13,9 @@ import pl.kj.bachelors.planning.application.dto.response.planning.PlanningTokenR
 import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
 import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.model.extension.Role;
+import pl.kj.bachelors.planning.domain.model.remote.Team;
 import pl.kj.bachelors.planning.domain.model.remote.TeamMember;
+import pl.kj.bachelors.planning.domain.service.TeamProvider;
 import pl.kj.bachelors.planning.domain.service.user.MemberProvider;
 import pl.kj.bachelors.planning.integration.BaseIntegrationTest;
 import pl.kj.bachelors.planning.model.PatchOperation;
@@ -30,6 +33,8 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
 
     @MockBean
     private MemberProvider memberProvider;
+    @MockBean
+    private TeamProvider teamProvider;
 
     @BeforeEach
     public void setUp() {
@@ -37,6 +42,12 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
                 .willReturn(Optional.of(this.createTeamMember("uid-1", List.of(Role.SCRUM_MASTER))));
         given(this.memberProvider.get(1, "uid-100"))
                 .willReturn(Optional.of(this.createTeamMember("uid-100", List.of(Role.TEAM_MEMBER))));
+        given(this.memberProvider.get(120, "uid-1"))
+                .willReturn(Optional.of(this.createTeamMember("uid-1", List.of(Role.SCRUM_MASTER))));
+        given(this.memberProvider.get(120, "uid-100"))
+                .willReturn(Optional.of(this.createTeamMember("uid-100", List.of(Role.TEAM_MEMBER))));
+        given(this.teamProvider.get(120))
+                .willReturn(Optional.of(this.createTeam()));
     }
 
     @Test
@@ -334,11 +345,54 @@ public class PlanningApiControllerTests extends BaseIntegrationTest {
         ).andExpect(status().isForbidden());
     }
 
+    @Test
+    public void testGetReport_Ok() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        MvcResult result = this.mockMvc.perform(
+                get("/v1/plannings/100/report")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isOk()).andReturn();
+        assertThat(result.getResponse().getContentAsByteArray()).isNotEmpty();
+    }
+
+    @Test
+    public void testGetReport_Forbidden_NotFinishedPlanning() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-1"));
+        this.mockMvc.perform(
+                get("/v1/plannings/4/report")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetReport_Forbidden_InsufficientRole() throws Exception {
+        String auth = String.format("%s %s", this.jwtConfig.getType(), this.generateValidAccessToken("uid-100"));
+        this.mockMvc.perform(
+                get("/v1/plannings/100/report")
+                        .header(HttpHeaders.AUTHORIZATION, auth)
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testGetReport_Forbidden_Unauthorized() throws Exception {
+        this.mockMvc.perform(
+                get("/v1/plannings/100/report")
+        ).andExpect(status().isUnauthorized());
+    }
+
     private TeamMember createTeamMember(String uid, List<Role> roles) {
         var member = new TeamMember();
         member.setUserId(uid);
         member.setRoles(roles);
 
         return member;
+    }
+
+    private Team createTeam() {
+        Team team = new Team();
+        team.setId(120);
+        team.setName("team 1");
+
+        return team;
     }
 }

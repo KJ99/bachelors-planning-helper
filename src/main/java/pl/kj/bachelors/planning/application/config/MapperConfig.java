@@ -1,7 +1,9 @@
 package pl.kj.bachelors.planning.application.config;
 
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
+import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,9 @@ import pl.kj.bachelors.planning.application.model.SingleCheckResult;
 import pl.kj.bachelors.planning.domain.config.ApiConfig;
 import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
+import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
+import pl.kj.bachelors.planning.domain.model.report.PlanningItemReport;
+import pl.kj.bachelors.planning.domain.model.report.PlanningReport;
 import pl.kj.bachelors.planning.domain.model.update.PlanningUpdateModel;
 
 import java.text.ParseException;
@@ -113,6 +118,35 @@ public class MapperConfig {
                 }).map(source, destination.getStartAt());
             }
         });
+
+        mapper.addMappings(new PropertyMap<Planning, PlanningReport>() {
+
+            @Override
+            protected void configure() {
+                skip(destination.getTeamName());
+                skip(destination.getResults());
+                using(ctx -> {
+                   Planning source = (Planning) ctx.getSource();
+                   SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.ENGLISH);
+
+                   return dateFormat.format(source.getStartAt().getTime());
+                }).map(source, destination.getDate());
+            }
+        });
+
+        mapper.addConverter(new Converter<PlanningItem, PlanningItemReport>() {
+            @Override
+            public PlanningItemReport convert(MappingContext<PlanningItem, PlanningItemReport> ctx) {
+                PlanningItem source = (ctx).getSource();
+                PlanningItemReport report = new PlanningItemReport();
+                report.setTitle(source.getTitle());
+                report.setEstimation(source.getEstimation().name());
+                report.setStoryPoints(source.getEstimation().value);
+
+                return report;
+            }
+        });
+
         return mapper;
     }
 }

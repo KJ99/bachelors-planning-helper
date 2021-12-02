@@ -4,5 +4,6 @@ public enum PlanningAdministrativeAction {
     CREATE,
     READ,
     UPDATE,
-    DELETE
+    DELETE,
+    EXPORT_REPORT
 }

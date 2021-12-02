@@ -6,9 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.kj.bachelors.planning.application.dto.request.ChangeVotingStatusRequest;
 import pl.kj.bachelors.planning.application.dto.request.PagingQuery;
 import pl.kj.bachelors.planning.application.dto.response.page.PageResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
@@ -21,6 +21,7 @@ import pl.kj.bachelors.planning.domain.model.create.PlanningCreateModel;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAction;
 import pl.kj.bachelors.planning.domain.model.extension.action.PlanningAdministrativeAction;
+import pl.kj.bachelors.planning.domain.model.report.PlanningReport;
 import pl.kj.bachelors.planning.domain.model.search.PlanningSearchModel;
 import pl.kj.bachelors.planning.domain.model.update.PlanningUpdateModel;
 import pl.kj.bachelors.planning.domain.service.crud.create.PlanningCreateService;
@@ -28,12 +29,16 @@ import pl.kj.bachelors.planning.domain.service.crud.delete.PlanningDeleteService
 import pl.kj.bachelors.planning.domain.service.crud.read.PlanningReadService;
 import pl.kj.bachelors.planning.domain.service.crud.update.PlanningUpdateService;
 import pl.kj.bachelors.planning.domain.service.management.PlanningManager;
+import pl.kj.bachelors.planning.domain.service.report.PlanningReportCreator;
+import pl.kj.bachelors.planning.domain.service.report.PlanningReportExporter;
 import pl.kj.bachelors.planning.domain.service.security.AccessControlService;
 import pl.kj.bachelors.planning.domain.service.security.EntityAccessControlService;
 import pl.kj.bachelors.planning.domain.service.security.JwtGenerator;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
 import pl.kj.bachelors.planning.infrastructure.user.RequestHandler;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +55,8 @@ public class PlanningApiController extends BaseApiController {
     private final AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl;
     private final PlanningManager manager;
     private final JwtGenerator jwtGenerator;
+    private final PlanningReportExporter exporter;
+    private final PlanningReportCreator reporter;
 
     @Autowired
     public PlanningApiController(
@@ -60,7 +67,10 @@ public class PlanningApiController extends BaseApiController {
             PlanningReadService readService,
             PlanningDeleteService deleteService,
             AccessControlService<Integer, PlanningAdministrativeAction> createAndReadAccessControl,
-            PlanningManager manager, JwtGenerator jwtGenerator) {
+            PlanningManager manager,
+            JwtGenerator jwtGenerator,
+            PlanningReportExporter exporter,
+            PlanningReportCreator reporter) {
         this.createService = createService;
         this.updateService = updateService;
         this.accessControl = accessControl;
@@ -70,6 +80,8 @@ public class PlanningApiController extends BaseApiController {
         this.createAndReadAccessControl = createAndReadAccessControl;
         this.manager = manager;
         this.jwtGenerator = jwtGenerator;
+        this.exporter = exporter;
+        this.reporter = reporter;
     }
 
     @PostMapping
@@ -163,5 +175,24 @@ public class PlanningApiController extends BaseApiController {
         response.setAccessToken(token);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/report")
+    public void getReport(@PathVariable Integer id, HttpServletResponse response) {
+        try {
+            Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
+            this.accessControl.ensureThatUserHasAccess(planning, PlanningAdministrativeAction.EXPORT_REPORT);
+            PlanningReport report = this.reporter.createReport(planning);
+            response.setContentType(MediaType.APPLICATION_PDF_VALUE);
+            this.exporter.exportTableReport(report, response.getOutputStream());
+        } catch (AccessDeniedException e) {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+        } catch (IOException e) {
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
+
+
     }
 }
