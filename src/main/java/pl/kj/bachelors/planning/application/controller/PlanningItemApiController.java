@@ -99,7 +99,7 @@ public class PlanningItemApiController extends BaseApiController {
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<?> update(
+    public ResponseEntity<?> patch(
             @PathVariable Integer planningId,
             @PathVariable Integer itemId,
             @RequestBody JsonPatch jsonPatch) throws Exception {
@@ -137,18 +137,6 @@ public class PlanningItemApiController extends BaseApiController {
         return ResponseEntity.ok(this.map(result, PlanningItemResponse.class));
     }
 
-    @GetMapping("/focused")
-    public ResponseEntity<PlanningItemResponse> getFocused(@PathVariable Integer planningId)
-            throws ResourceNotFoundException, AccessDeniedException {
-        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
-        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.READ);
-
-        PlanningItem result = this.repository.findFirstByPlanningAndFocused(planning, true)
-                .orElseThrow(ResourceNotFoundException::new);
-
-        return ResponseEntity.ok(this.map(result, PlanningItemResponse.class));
-    }
-
     @DeleteMapping("/{itemId}")
     public ResponseEntity<?> delete(@PathVariable Integer planningId, @PathVariable Integer itemId) throws Exception {
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
@@ -173,96 +161,6 @@ public class PlanningItemApiController extends BaseApiController {
             model.setPlanning(planning);
             this.createService.create(model, PlanningItem.class);
         }
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/{itemId}/focus")
-    public ResponseEntity<?> focus(@PathVariable Integer planningId, @PathVariable Integer itemId)
-            throws ResourceNotFoundException, AccessDeniedException, ApiError {
-        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
-        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.CHANGE_CURRENT);
-        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
-                .orElseThrow(ResourceNotFoundException::new);
-
-
-        this.focusManager.focus(item);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/next/focus")
-    public ResponseEntity<?> focus(@PathVariable Integer planningId)
-            throws ResourceNotFoundException, AccessDeniedException, ApiError {
-        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
-        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.CHANGE_CURRENT);
-
-        this.focusManager.focusNext(planning);
-
-        var focused = this.repository.findFirstByPlanningAndFocused(planning, true).orElseThrow();
-
-        return ResponseEntity.ok(this.map(focused, PlanningItemResponse.class));
-    }
-
-    @PutMapping("/{itemId}/estimate")
-    public ResponseEntity<?> estimate(
-            @PathVariable Integer planningId,
-            @PathVariable Integer itemId,
-            @RequestBody EstimationRequest request)
-            throws AccessDeniedException, ResourceNotFoundException, AggregatedApiError, ApiError {
-        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
-        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.SET_ESTIMATION);
-        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
-                .orElseThrow(ResourceNotFoundException::new);
-        this.ensureThatModelIsValid(request);
-
-        this.estimationManager.setEstimation(item, Estimation.valueOf(request.getValue()));
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{itemId}/votes")
-    public ResponseEntity<?> vote(
-            @PathVariable Integer planningId,
-            @PathVariable Integer itemId,
-            @RequestBody EstimationRequest request)
-            throws ResourceNotFoundException, AccessDeniedException, AggregatedApiError, ApiError {
-        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
-        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.VOTE);
-        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
-                .orElseThrow(ResourceNotFoundException::new);
-        this.ensureThatModelIsValid(request);
-        String uid = RequestHandler.getCurrentUserId().orElseThrow(AccessDeniedException::new);
-
-        this.voteManager.vote(item, uid, Estimation.valueOf(request.getValue()));
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{itemId}/votes")
-    public ResponseEntity<Collection<VoteResponse>> getVotes(
-            @PathVariable Integer planningId,
-            @PathVariable Integer itemId)
-            throws ResourceNotFoundException, AccessDeniedException {
-        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
-        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.FETCH_VOTES);
-        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
-                .orElseThrow(ResourceNotFoundException::new);
-
-        List<Vote> votes = this.voteRepository.findByPlanningItem(item);
-
-        return ResponseEntity.ok(this.mapCollection(votes, VoteResponse.class));
-    }
-
-    @DeleteMapping("/{itemId}/votes")
-    public ResponseEntity<?> clearVotes(@PathVariable Integer planningId, @PathVariable Integer itemId)
-            throws ResourceNotFoundException, AccessDeniedException, ApiError {
-        Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
-        this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningAction.CLEAR_VOTES);
-        PlanningItem item = this.repository.findFirstByIdAndPlanning(itemId, planning)
-                .orElseThrow(ResourceNotFoundException::new);
-
-        this.voteManager.clearVotes(item);
 
         return ResponseEntity.noContent().build();
     }

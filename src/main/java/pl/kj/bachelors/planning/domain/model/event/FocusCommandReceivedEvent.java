@@ -1,6 +1,6 @@
 package pl.kj.bachelors.planning.domain.model.event;
 
-import pl.kj.bachelors.planning.domain.model.payload.command.PlanningItemCommandPayload;
+import pl.kj.bachelors.planning.domain.model.payload.PlanningItemCommandPayload;
 
 public class FocusCommandReceivedEvent extends CommandReceivedEvent<PlanningItemCommandPayload>{
     public FocusCommandReceivedEvent(Object source, PlanningItemCommandPayload payload) {

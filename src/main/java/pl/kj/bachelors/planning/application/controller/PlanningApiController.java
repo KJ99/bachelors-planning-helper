@@ -148,32 +148,6 @@ public class PlanningApiController extends BaseApiController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/finish")
-    public ResponseEntity<?> finish(@PathVariable Integer id)
-            throws ResourceNotFoundException, AccessDeniedException, ApiError {
-        Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
-        this.accessControl.ensureThatUserHasAccess(planning, PlanningAction.COMPLETE);
-
-        this.manager.close(planning);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/{id}/voting")
-    public ResponseEntity<?> changeVotingStatus(@PathVariable Integer id, @RequestBody ChangeVotingStatusRequest request)
-            throws ResourceNotFoundException, AccessDeniedException, ApiError {
-        Planning planning = this.repository.findById(id).orElseThrow(ResourceNotFoundException::new);
-        this.accessControl.ensureThatUserHasAccess(planning, PlanningAction.CHANGE_CURRENT);
-
-        if(request.isEnabled()) {
-            this.manager.enableVoting(planning);
-        } else {
-            this.manager.disableVoting(planning);
-        }
-
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{id}/token")
     public ResponseEntity<PlanningTokenResponse> getToken(@PathVariable Integer id)
             throws ResourceNotFoundException, AccessDeniedException {

@@ -10,7 +10,7 @@ import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
 import pl.kj.bachelors.planning.domain.model.event.*;
 import pl.kj.bachelors.planning.domain.model.extension.RequestAttributeName;
-import pl.kj.bachelors.planning.domain.model.payload.command.EstimationCommandPayload;
+import pl.kj.bachelors.planning.domain.model.payload.EstimationCommandPayload;
 import pl.kj.bachelors.planning.domain.service.management.EstimationManager;
 import pl.kj.bachelors.planning.domain.service.management.FocusManager;
 import pl.kj.bachelors.planning.domain.service.management.PlanningManager;

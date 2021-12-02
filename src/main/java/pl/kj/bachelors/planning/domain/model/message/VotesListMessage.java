@@ -1,7 +1,7 @@
 package pl.kj.bachelors.planning.domain.model.message;
 
 import pl.kj.bachelors.planning.domain.model.extension.MessageType;
-import pl.kj.bachelors.planning.domain.model.payload.message.VotePayload;
+import pl.kj.bachelors.planning.domain.model.payload.VotePayload;
 
 import java.util.List;
 
