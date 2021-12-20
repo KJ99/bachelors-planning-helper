@@ -1,6 +1,12 @@
 package pl.kj.bachelors.planning.application.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -8,8 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.kj.bachelors.planning.application.dto.request.EstimationRequest;
+import pl.kj.bachelors.planning.application.dto.response.error.ValidationErrorResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
+import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
 import pl.kj.bachelors.planning.application.dto.response.vote.VoteResponse;
+import pl.kj.bachelors.planning.application.example.PlanningItemsListExample;
+import pl.kj.bachelors.planning.application.example.PlanningResponsePageExample;
 import pl.kj.bachelors.planning.domain.annotation.Authentication;
 import pl.kj.bachelors.planning.domain.exception.AccessDeniedException;
 import pl.kj.bachelors.planning.domain.exception.AggregatedApiError;
@@ -84,6 +94,25 @@ public class PlanningItemApiController extends BaseApiController {
     }
 
     @PostMapping
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PlanningItemResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ValidationErrorResponse.class))
+                    )
+            ),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @SecurityRequirement(name = "JWT")
     public ResponseEntity<PlanningItemResponse> post(
             @PathVariable Integer planningId,
             @RequestBody PlanningItemCreateModel model) throws Exception {
@@ -99,6 +128,19 @@ public class PlanningItemApiController extends BaseApiController {
     }
 
     @PatchMapping("/{itemId}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(
+                    responseCode = "400",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ApiError.class))
+                    )
+            ),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @SecurityRequirement(name = "JWT")
     public ResponseEntity<?> patch(
             @PathVariable Integer planningId,
             @PathVariable Integer itemId,
@@ -114,6 +156,18 @@ public class PlanningItemApiController extends BaseApiController {
     }
 
     @GetMapping
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PlanningItemsListExample.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @SecurityRequirement(name = "JWT")
     public ResponseEntity<Collection<PlanningItemResponse>> get(@PathVariable Integer planningId)
             throws ResourceNotFoundException, AccessDeniedException {
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
@@ -125,6 +179,18 @@ public class PlanningItemApiController extends BaseApiController {
     }
 
     @GetMapping("/{itemId}")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PlanningItemResponse.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @SecurityRequirement(name = "JWT")
     public ResponseEntity<PlanningItemResponse> getParticular(
             @PathVariable Integer planningId,
             @PathVariable Integer itemId) throws ResourceNotFoundException, AccessDeniedException {
@@ -138,6 +204,12 @@ public class PlanningItemApiController extends BaseApiController {
     }
 
     @DeleteMapping("/{itemId}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @SecurityRequirement(name = "JWT")
     public ResponseEntity<?> delete(@PathVariable Integer planningId, @PathVariable Integer itemId) throws Exception {
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
         this.planningAccessControlService.ensureThatUserHasAccess(planning, PlanningItemAdministrativeAction.DELETE);
@@ -150,6 +222,12 @@ public class PlanningItemApiController extends BaseApiController {
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @SecurityRequirement(name = "JWT")
     public ResponseEntity<?> importFromCsv(
             @RequestParam("file") MultipartFile file,
             @PathVariable Integer planningId
