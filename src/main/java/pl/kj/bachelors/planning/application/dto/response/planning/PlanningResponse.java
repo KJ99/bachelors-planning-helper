@@ -6,7 +6,7 @@ public class PlanningResponse {
     private int id;
     private String title;
     private String status;
-    private Calendar startAt;
+    private Calendar startDate;
 
     public int getId() {
         return id;
@@ -32,11 +32,11 @@ public class PlanningResponse {
         this.status = status;
     }
 
-    public Calendar getStartAt() {
-        return startAt;
+    public Calendar getStartDate() {
+        return startDate;
     }
 
-    public void setStartAt(Calendar startAt) {
-        this.startAt = startAt;
+    public void setStartDate(Calendar startDate) {
+        this.startDate = startDate;
     }
 }

@@ -10,6 +10,7 @@ public class JwtConfig {
     private String algorithm;
     private long validTimeInMinutes;
     private String type;
+    private WebSocketTokenConfig socket;
 
     public String getSecret() {
         return secret;
@@ -41,5 +42,13 @@ public class JwtConfig {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public WebSocketTokenConfig getSocket() {
+        return socket;
+    }
+
+    public void setSocket(WebSocketTokenConfig socket) {
+        this.socket = socket;
     }
 }

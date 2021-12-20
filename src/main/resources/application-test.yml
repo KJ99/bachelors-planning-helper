@@ -24,6 +24,9 @@ jwt:
   secret: TestarrooSecret
   algorithm: HS256
   type: Bearer
+  socket:
+    secret: TestarrooSecret2
+    valid-time-in-minutes: 360
 api:
   host: 'localhost:8443'
 google-storage:
