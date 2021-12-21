@@ -32,7 +32,7 @@ public class PlanningManagementServiceTests extends BaseUnitTest {
         Throwable thrown = catchThrowable(() -> this.service.open(planning));
         assertThat(thrown).isInstanceOf(ApiError.class);
         ApiError ex = (ApiError) thrown;
-        assertThat(ex.getCode()).isEqualTo("PL.101");
+        assertThat(ex.getCode()).isEqualTo("PL.005");
     }
 
     @Test
@@ -49,7 +49,7 @@ public class PlanningManagementServiceTests extends BaseUnitTest {
         Throwable thrown = catchThrowable(() -> this.service.close(planning));
         assertThat(thrown).isInstanceOf(ApiError.class);
         ApiError ex = (ApiError) thrown;
-        assertThat(ex.getCode()).isEqualTo("PL.102");
+        assertThat(ex.getCode()).isEqualTo("PL.006");
     }
 
     @Test

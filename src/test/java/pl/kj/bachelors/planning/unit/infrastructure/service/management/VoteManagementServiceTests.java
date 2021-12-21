@@ -51,7 +51,7 @@ public class VoteManagementServiceTests extends BaseUnitTest {
         Throwable thrown = catchThrowable(() -> this.service.vote(item, uid, value));
 
         assertThat(thrown).isInstanceOf(ApiError.class);
-        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.131");
+        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.012");
 
     }
 
@@ -65,7 +65,7 @@ public class VoteManagementServiceTests extends BaseUnitTest {
         Throwable thrown = catchThrowable(() -> this.service.vote(item, uid, value));
 
         assertThat(thrown).isInstanceOf(ApiError.class);
-        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.132");
+        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.013");
 
     }
 
@@ -79,7 +79,7 @@ public class VoteManagementServiceTests extends BaseUnitTest {
         Throwable thrown = catchThrowable(() -> this.service.vote(item, uid, value));
 
         assertThat(thrown).isInstanceOf(ApiError.class);
-        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.133");
+        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.014");
 
     }
 
@@ -101,7 +101,7 @@ public class VoteManagementServiceTests extends BaseUnitTest {
         Throwable thrown = catchThrowable(() -> this.service.clearVotes(item));
 
         assertThat(thrown).isInstanceOf(ApiError.class);
-        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.134");
+        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.015");
     }
 
     @Test
@@ -112,6 +112,6 @@ public class VoteManagementServiceTests extends BaseUnitTest {
         Throwable thrown = catchThrowable(() -> this.service.clearVotes(item));
 
         assertThat(thrown).isInstanceOf(ApiError.class);
-        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.135");
+        assertThat(((ApiError) thrown).getCode()).isEqualTo("PL.016");
     }
 }

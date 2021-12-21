@@ -8,7 +8,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 public class EstimationRequest {
-    @FromEnum(enumClass = Estimation.class, message = "PL.121")
+    @FromEnum(enumClass = Estimation.class, message = "PL.008")
     @Enumerated(EnumType.STRING)
     private String value;
 
