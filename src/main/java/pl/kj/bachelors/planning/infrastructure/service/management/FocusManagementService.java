@@ -1,10 +1,10 @@
 package pl.kj.bachelors.planning.infrastructure.service.management;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.kj.bachelors.planning.domain.config.ApiConfig;
 import pl.kj.bachelors.planning.domain.exception.ApiError;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import pl.kj.bachelors.planning.domain.model.entity.PlanningItem;
@@ -13,18 +13,22 @@ import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.service.management.FocusManager;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningItemRepository;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class FocusManagementService extends BaseManagementService implements FocusManager {
     private final PlanningItemRepository repository;
+    private final ApiConfig apiConfig;
 
     @Autowired
-    public FocusManagementService(PlanningItemRepository repository, ApplicationEventPublisher eventPublisher) {
+    public FocusManagementService(
+            PlanningItemRepository repository,
+            ApplicationEventPublisher eventPublisher,
+            ApiConfig apiConfig) {
         super(eventPublisher);
         this.repository = repository;
+        this.apiConfig = apiConfig;
     }
 
     @Override
@@ -93,7 +97,7 @@ public class FocusManagementService extends BaseManagementService implements Foc
 
     private void ensureThatStatusIsCorrect(Planning planning) throws ApiError {
         if(!planning.hasStatusIn(Arrays.asList(PlanningStatus.PROGRESSING, PlanningStatus.VOTING))) {
-            throw new ApiError("", "PL.111", null);
+            throw new ApiError(this.apiConfig.getErrors().get("PL.007"), "PL.007", null);
         }
     }
 }

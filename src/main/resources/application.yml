@@ -38,6 +38,19 @@ in-app-cache:
 api:
   host: ''
   errors:
-    PL.001: ''
-    PL.002: ''
-    PL.003: ''
+    PL.001: The value should be a positive number
+    PL.002: This value shound not be empty
+    PL.003: This value should be a future date time
+    PL.004: Could not process the file
+    PL.005: You can only start Planning with SCHEDULED status
+    PL.006: You can only close Planning with PROGRESSING or VOTING status
+    PL.007: You can only change focus of Planning with PROGRESSING or VOTING status
+    PL.008: This value is not valid
+    PL.009: You cannot set estimation for not focused item
+    PL.010: You can only enable voting of Planning with PROGRESSING status
+    PL.011: You can only disable voting of Planning with VOTING status
+    PL.012: You can only vote when status of the Planning is VOTING
+    PL.013: You can only vote on focused item
+    PL.014: You have already voted on this item
+    PL.015: You can only clear votes when Planning has PROGRESSING or VOTING status
+    PL.016: You can only clear votes from focused item

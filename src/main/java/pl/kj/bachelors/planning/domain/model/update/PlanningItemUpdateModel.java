@@ -3,7 +3,7 @@ package pl.kj.bachelors.planning.domain.model.update;
 import javax.validation.constraints.NotBlank;
 
 public class PlanningItemUpdateModel {
-    @NotBlank(message = "PL.011")
+    @NotBlank(message = "PL.002")
     private String title;
     private String description;
 

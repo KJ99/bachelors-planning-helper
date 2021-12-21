@@ -9,7 +9,7 @@ import pl.kj.bachelors.planning.domain.model.entity.Planning;
 import javax.validation.constraints.NotBlank;
 
 public class PlanningItemCreateModel {
-    @NotBlank(message = "PL.011")
+    @NotBlank(message = "PL.002")
     @CsvBindByName
     private String title;
     @CsvBindByName
