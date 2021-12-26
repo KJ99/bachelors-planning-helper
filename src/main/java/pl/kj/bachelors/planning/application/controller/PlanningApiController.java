@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.kj.bachelors.planning.application.dto.request.PagingQuery;
 import pl.kj.bachelors.planning.application.dto.response.error.ValidationErrorResponse;
 import pl.kj.bachelors.planning.application.dto.response.page.PageResponse;
+import pl.kj.bachelors.planning.application.dto.response.planning.IncomingPlanningResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningTokenResponse;
 import pl.kj.bachelors.planning.application.example.PlanningResponsePageExample;
@@ -182,19 +183,22 @@ public class PlanningApiController extends BaseApiController {
                     responseCode = "200",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = PlanningResponse.class)
+                            schema = @Schema(implementation = IncomingPlanningResponse.class)
                     )
             ),
             @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true)))
     })
     @SecurityRequirement(name = "JWT")
-    public ResponseEntity<PlanningResponse> getIncoming(@RequestParam("team-id") Integer teamId)
+    public ResponseEntity<IncomingPlanningResponse> getIncoming(@RequestParam("team-id") Integer teamId)
             throws AccessDeniedException, ResourceNotFoundException {
         this.createAndReadAccessControl.ensureThatUserHasAccess(teamId, PlanningAdministrativeAction.READ);
         Planning planning = this.readService.readIncoming(teamId).orElseThrow(ResourceNotFoundException::new);
+        IncomingPlanningResponse response = new IncomingPlanningResponse();
+        response.setScheduled(planning != null);
+        response.setData(this.map(planning, PlanningResponse.class));
 
-        return ResponseEntity.ok(this.map(planning, PlanningResponse.class));
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
