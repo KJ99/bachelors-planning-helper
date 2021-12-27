@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.kj.bachelors.planning.application.dto.request.PagingQuery;
 import pl.kj.bachelors.planning.application.dto.response.error.ValidationErrorResponse;
 import pl.kj.bachelors.planning.application.dto.response.page.PageResponse;
+import pl.kj.bachelors.planning.application.dto.response.planning.IncomingPlanningResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningTokenResponse;
 import pl.kj.bachelors.planning.application.example.PlanningResponsePageExample;
@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/plannings")
@@ -182,19 +183,22 @@ public class PlanningApiController extends BaseApiController {
                     responseCode = "200",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = PlanningResponse.class)
+                            schema = @Schema(implementation = IncomingPlanningResponse.class)
                     )
             ),
             @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true)))
     })
     @SecurityRequirement(name = "JWT")
-    public ResponseEntity<PlanningResponse> getIncoming(@RequestParam("team-id") Integer teamId)
+    public ResponseEntity<IncomingPlanningResponse> getIncoming(@RequestParam("team-id") Integer teamId)
             throws AccessDeniedException, ResourceNotFoundException {
         this.createAndReadAccessControl.ensureThatUserHasAccess(teamId, PlanningAdministrativeAction.READ);
-        Planning planning = this.readService.readIncoming(teamId).orElseThrow(ResourceNotFoundException::new);
+        Optional<Planning> planning = this.readService.readIncoming(teamId);
+        IncomingPlanningResponse response = new IncomingPlanningResponse();
+        response.setScheduled(planning.isPresent());
+        planning.ifPresent(data -> response.setData(this.map(planning, PlanningResponse.class)));
 
-        return ResponseEntity.ok(this.map(planning, PlanningResponse.class));
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
