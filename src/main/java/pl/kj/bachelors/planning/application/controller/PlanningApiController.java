@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -52,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/plannings")
@@ -193,10 +193,10 @@ public class PlanningApiController extends BaseApiController {
     public ResponseEntity<IncomingPlanningResponse> getIncoming(@RequestParam("team-id") Integer teamId)
             throws AccessDeniedException, ResourceNotFoundException {
         this.createAndReadAccessControl.ensureThatUserHasAccess(teamId, PlanningAdministrativeAction.READ);
-        Planning planning = this.readService.readIncoming(teamId).orElseThrow(ResourceNotFoundException::new);
+        Optional<Planning> planning = this.readService.readIncoming(teamId);
         IncomingPlanningResponse response = new IncomingPlanningResponse();
-        response.setScheduled(planning != null);
-        response.setData(this.map(planning, PlanningResponse.class));
+        response.setScheduled(planning.isPresent());
+        planning.ifPresent(data -> response.setData(this.map(planning, PlanningResponse.class)));
 
         return ResponseEntity.ok(response);
     }

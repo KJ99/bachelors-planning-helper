@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kj.bachelors.planning.domain.model.entity.Planning;
-import pl.kj.bachelors.planning.domain.model.extension.PlanningStatus;
 import pl.kj.bachelors.planning.domain.model.search.PlanningSearchModel;
 import pl.kj.bachelors.planning.domain.service.crud.read.PlanningReadService;
 import pl.kj.bachelors.planning.infrastructure.repository.PlanningRepository;
@@ -41,7 +40,7 @@ public class PlanningReadServiceImpl implements PlanningReadService {
     @Override
     public Optional<Planning> readIncoming(Integer teamId) {
         Optional<Planning> planning = this.repository
-                .findFirstByTeamIdAndStatusOrderByStartAtAsc(teamId, PlanningStatus.SCHEDULED);
+                .findFirstNotFinished(teamId);
         return planning.map(this::applyTimeZone);
     }
 
