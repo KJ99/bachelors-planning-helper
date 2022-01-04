@@ -172,7 +172,12 @@ abstract class BaseApiController {
 
     protected <S, T> PageResponse<T> createPageResponse(Page<S> data, Class<T> modelClass) {
         PageResponse<T> response = new PageResponse<>();
-        response.setMetadata(this.map(data, PageMetadata.class));
+        PageMetadata metadata = new PageMetadata();
+        metadata.setPage(data.getNumber());
+        metadata.setPageSize(data.getSize());
+        metadata.setTotalPages(data.getTotalPages());
+
+        response.setMetadata(metadata);
         response.setData(this.mapCollection(data.getContent(), modelClass));
 
         return response;
