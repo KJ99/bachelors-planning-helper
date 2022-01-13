@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface PlanningRepository extends JpaRepository<Planning, Integer> {
     Page<Planning> findByTeamIdAndStatus(Integer teamId, PlanningStatus status, Pageable pageable);
-    Page<Planning> findByTeamId(Integer teamId, Pageable pageable);
+    Page<Planning> findByTeamIdOrderByStartAtDesc(Integer teamId, Pageable pageable);
 
     @Query("select p from Planning p where p.status != 'FINISHED' order by p.startAt asc")
     Optional<Planning> findFirstNotFinished(Integer teamId);
