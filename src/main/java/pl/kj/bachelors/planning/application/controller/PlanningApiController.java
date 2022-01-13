@@ -196,7 +196,7 @@ public class PlanningApiController extends BaseApiController {
         Optional<Planning> planning = this.readService.readIncoming(teamId);
         IncomingPlanningResponse response = new IncomingPlanningResponse();
         response.setScheduled(planning.isPresent());
-        planning.ifPresent(data -> response.setData(this.map(planning, PlanningResponse.class)));
+        planning.ifPresent(data -> response.setData(this.map(data, PlanningResponse.class)));
 
         return ResponseEntity.ok(response);
     }

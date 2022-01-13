@@ -26,7 +26,7 @@ public class PlanningReadServiceImpl implements PlanningReadService {
     public Page<Planning> readPagedByTeam(Integer teamId, Pageable pageQuery, PlanningSearchModel searchQuery) {
         Page<Planning> page = searchQuery.getStatus() != null
                 ? this.repository.findByTeamIdAndStatus(teamId, searchQuery.getStatus(), pageQuery)
-                : this.repository.findByTeamId(teamId, pageQuery);
+                : this.repository.findByTeamIdOrderByStartAtDesc(teamId, pageQuery);
 
         return page.map(this::applyTimeZone);
     }
