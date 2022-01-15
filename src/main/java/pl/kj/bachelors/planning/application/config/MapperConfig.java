@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pl.kj.bachelors.planning.application.dto.response.health.HealthCheckResponse;
 import pl.kj.bachelors.planning.application.dto.response.health.SingleCheckResponse;
+import pl.kj.bachelors.planning.application.dto.response.planning.PlanningItemResponse;
 import pl.kj.bachelors.planning.application.dto.response.planning.PlanningResponse;
 import pl.kj.bachelors.planning.application.model.HealthCheckResult;
 import pl.kj.bachelors.planning.application.model.SingleCheckResult;
@@ -147,6 +148,12 @@ public class MapperConfig {
             }
         });
 
+        mapper.addMappings(new PropertyMap<PlanningItem, PlanningItemResponse>() {
+            @Override
+            protected void configure() {
+                map().setEstimation(source.getEstimation().value);
+            }
+        });
         return mapper;
     }
 }
