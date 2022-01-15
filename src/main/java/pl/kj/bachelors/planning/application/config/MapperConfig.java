@@ -148,10 +148,16 @@ public class MapperConfig {
             }
         });
 
-        mapper.addMappings(new PropertyMap<PlanningItem, PlanningItemResponse>() {
+        mapper.addConverter(new Converter<PlanningItem, PlanningItemResponse>() {
             @Override
-            protected void configure() {
-                map().setEstimation(source.getEstimation().value);
+            public PlanningItemResponse convert(MappingContext<PlanningItem, PlanningItemResponse> ctx) {
+                PlanningItem source = (ctx).getSource();
+                PlanningItemResponse response = new PlanningItemResponse();
+                response.setTitle(source.getTitle());
+                response.setDescription(source.getDescription());
+                response.setEstimation(source.getEstimation().value);
+
+                return response;
             }
         });
         return mapper;
