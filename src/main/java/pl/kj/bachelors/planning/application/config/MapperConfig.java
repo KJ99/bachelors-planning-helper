@@ -155,7 +155,11 @@ public class MapperConfig {
                 PlanningItemResponse response = new PlanningItemResponse();
                 response.setTitle(source.getTitle());
                 response.setDescription(source.getDescription());
-                response.setEstimation(source.getEstimation().value);
+                response.setEstimation(
+                        source.getEstimation() != null
+                                ? source.getEstimation().value
+                                : null
+                );
 
                 return response;
             }
