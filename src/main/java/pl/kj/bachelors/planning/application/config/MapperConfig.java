@@ -153,6 +153,7 @@ public class MapperConfig {
             public PlanningItemResponse convert(MappingContext<PlanningItem, PlanningItemResponse> ctx) {
                 PlanningItem source = (ctx).getSource();
                 PlanningItemResponse response = new PlanningItemResponse();
+                response.setId(source.getId());
                 response.setTitle(source.getTitle());
                 response.setDescription(source.getDescription());
                 response.setEstimation(
