@@ -2,6 +2,7 @@ package pl.kj.bachelors.planning.application.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +47,7 @@ public class WebSocketController {
     @MessageMapping("/command")
     public void commandReceived(Message<String> message)
             throws IOException, AccessDeniedException, ResourceNotFoundException {
+        LoggerFactory.getLogger(getClass()).info(String.format("Received command %s", message.getPayload()));
         Integer planningId = RequestHandler.getAttribute(RequestAttributeName.PLANNING_ID.value, Integer.class).orElseThrow();
         Planning planning = this.planningRepository.findById(planningId).orElseThrow(ResourceNotFoundException::new);
         JsonNode messageJson = this.objectMapper.readTree(message.getPayload().getBytes(StandardCharsets.UTF_8));
